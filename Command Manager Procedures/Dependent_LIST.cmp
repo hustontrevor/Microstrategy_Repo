@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>//////////////////////////////
+//  LIST [ALL] DEPENDENTS FOR object_type "object_name" IN FOLDER "location_path" [RECURSIVELY] IN PROJECT "project_name";
+//
+// DSS_OBJECT_TYPE: The type of the dependent, returned as an integer:
+// ID: The object ID of the dependent, returned as a string.
+// MODIFICATION_TIME: The date and time the dependent was last modified, returned as a date/string.
+// NAME: The name of the dependent, returned as a string.
+// OWNER: The owner of the dependent, returned as a string.
+// PATH: The path to the dependent, returned as a string.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+String[] arr = { 
+//"REPORT","OP ER FF (Base)","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\ER FF\\Underlying Reports"
+//,"REPORT","OP ER FF (Target)","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\ER FF\\Underlying Reports"
+//,"REPORT","Top 25 Emergency Department Dx's","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\ER FF\\Underlying Reports"
+//,"REPORT","Top 25 Emergency Departments","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\ER FF\\Underlying Reports"
+//,"REPORT","Allowed preventable PMPM","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\KPI Budgets\\Potentially Preventable Events"
+//,"REPORT","ppa bas","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\KPI Budgets\\Potentially Preventable Events\\Reports"
+//,"REPORT","ppe","\\Profiles\\Eric Breton (ebreton@Localsolutions.com)\\My Reports\\On Site 6.19\\KPI Budgets\\Potentially Preventable Events\\Reports"
+
+
+"TABLE","Budget_Average_Entity_Risk_Score","\\Schema Objects\\Tables"				
+,"TABLE","Budget_Expected_Levels_Trended_PMPM_Entity","\\Schema Objects\\Tables"		
+,"TABLE","Budget_Index_PMPM_Targets","\\Schema Objects\\Tables"						
+,"TABLE","Budget_Master_Program","\\Schema Objects\\Tables"							
+,"TABLE","Budget_Person_Dim","\\Schema Objects\\Tables"								
+,"TABLE","Budget_Person_Fact","\\Schema Objects\\Tables"								
+,"TABLE","Budget_Program","\\Schema Objects\\Tables"									
+,"TABLE","Budget_Relative_Weights_CRG_Age_Gender","\\Schema Objects\\Tables"			
+,"TABLE","Expected_Budget_Person_Fact","\\Schema Objects\\Tables"					
+,"TABLE","Lu_ACO_Budget_Alias","\\Schema Objects\\Tables"							
+,"TABLE","Lu_ACO_Budget_Entity_Alias","\\Schema Objects\\Tables"						
+,"TABLE","Lu_Age_Group_Population_Budget_Alias","\\Schema Objects\\Tables"			
+,"TABLE","Lu_CRG_Budget_Alias","\\Schema Objects\\Tables"							
+,"TABLE","Lu_Flag_Budget_Rolling_Flag","\\Schema Objects\\Tables"					
+,"TABLE","Lu_Flag_In_Budget_CustomerLA_Alias","\\Schema Objects\\Tables"					
+,"TABLE","Lu_Gender_Budget_Alias","\\Schema Objects\\Tables"							
+,"TABLE","Lu_Line_of_Business_Budget_Alias","\\Schema Objects\\Tables"				
+,"TABLE","Lu_Medical_Home_Budget_Alias","\\Schema Objects\\Tables"					
+,"TABLE","Provider_Hist_Dim_Budget_Alias","\\Schema Objects\\Tables"					
+,"TABLE","Time_Period_Budget_Actual_Alias","\\Schema Objects\\Tables"				
+,"TABLE","Time_Period_Budget_CRG_Alias","\\Schema Objects\\Tables"					
+,"TABLE","vw_Budget_Person_Dim","\\Schema Objects\\Tables"							
+
+};
+
+printOut( "Source_OBJECT,Source_OBJ_PATH,sID,sOBJ_TYPE,sNAME,sPATH,sOWNER,sMODIFICATION_TIME" );
+int i;
+for ( i = 0; i &lt; arr.length; i=i+3 ){
+
+// LIST [ALL] DEPENDENTS FOR (FOLDER|REPORT| CONSOLIDATION| CUSTOMGROUP| FILTER| METRIC | SEARCH| SHORTCUT| TEMPLATE | TRANSFORMATION |  SECURITY FILTER | ATTRIBUTE| DRILLMAP| PROMPT |FACT | DOCUMENT | HIERARCHY | TABLE) 
+// "&lt;object_name&gt;" IN FOLDER "&lt;location_path&gt;" [RECURSIVELY]  IN PROJECT "&lt;project_name&gt;";
+	String exeCap = "LIST ALL DEPENDENTS FOR " + arr[i] + " \"" + arr[i+1] + "\" IN FOLDER \"" + arr[i+2] + "\"  IN PROJECT \"MyProj Falcon\";";		
+	ResultSet fResultSet = executeCapture( exeCap );
+	try{
+	if ( fResultSet != null ){
+		fResultSet.moveFirst();  	
+		while(!fResultSet.isEof()){ 
+			String sID = fResultSet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+			Date sMODIFICATION_TIME = (Date) fResultSet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();
+			String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+			String sOWNER = fResultSet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();
+			String sPATH = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString();
+			int iDSS_OBJECT_TYPE = (int) fResultSet.getResultCell(DisplayPropertyEnum.DSS_OBJECT_TYPE).getValue();
+			String sOBJ_TYPE = "";
+switch (iDSS_OBJECT_TYPE){
+case 256: sOBJ_TYPE = "Filter"; break; 
+case 257: sOBJ_TYPE = "Custom Group"; break; 
+case 512: sOBJ_TYPE = "Template"; break; 
+case 768: sOBJ_TYPE = "Grid Report"; break; 
+case 769: sOBJ_TYPE = "Graph Report"; break; 
+case 770: sOBJ_TYPE = "SQL Report"; break; 
+case 771: sOBJ_TYPE = "Text Report"; break; 
+case 772: sOBJ_TYPE = "Data Mart Report"; break; 
+case 773: sOBJ_TYPE = "Base Report"; break; 
+case 774: sOBJ_TYPE = "Grid Graph Report"; break; 
+case 775: sOBJ_TYPE = "Non Interactive Report"; break; 
+case 776: sOBJ_TYPE = "Intelligent Cube"; break; 
+case 1024: sOBJ_TYPE = "Metric"; break; 
+case 1025: sOBJ_TYPE = "Subtotal"; break; 
+case 1026: sOBJ_TYPE = "Subtotal"; break; 
+case 1027: sOBJ_TYPE = "Predictive Metric"; break; 
+case 1028: sOBJ_TYPE = "Training metric"; break; 
+case 1536: sOBJ_TYPE = "AutoStyle"; break; 
+case 1792: sOBJ_TYPE = "Base Formula"; break; 
+case 2048: sOBJ_TYPE = "Folder"; break; 
+case 2560: sOBJ_TYPE = "Prompt"; break; 
+case 2561: sOBJ_TYPE = "Boolean prompt"; break; 
+case 2562: sOBJ_TYPE = "Long number prompt"; break; 
+case 2563: sOBJ_TYPE = "Text prompt"; break; 
+case 2564: sOBJ_TYPE = "Numeric prompt"; break; 
+case 2565: sOBJ_TYPE = "Date prompt"; break; 
+case 2566: sOBJ_TYPE = "Object prompt"; break; 
+case 2567: sOBJ_TYPE = "Elements prompt"; break; 
+case 2568: sOBJ_TYPE = "Expression prompt"; break; 
+case 2569: sOBJ_TYPE = "Expression draft prompt"; break; 
+case 2571: sOBJ_TYPE = "Big Decimal Prompt"; break; 
+case 2816: sOBJ_TYPE = "Function"; break; 
+case 3072: sOBJ_TYPE = "Attribute"; break; 
+case 3073: sOBJ_TYPE = "Role Attribute"; break; 
+case 3074: sOBJ_TYPE = "Transformation Attribute"; break; 
+case 3075: sOBJ_TYPE = "Abstract Attribute"; break; 
+case 3328: sOBJ_TYPE = "Fact"; break; 
+case 3584: sOBJ_TYPE = "System Hierarchy"; break; 
+case 3585: sOBJ_TYPE = "Hierarchy"; break; 
+case 3586: sOBJ_TYPE = "Ordered User Hierarchy"; break; 
+case 3587: sOBJ_TYPE = "Hierarchy"; break; 
+case 3840: sOBJ_TYPE = "Logical Table"; break; 
+case 3841: sOBJ_TYPE = "Metadata Partition Mapping"; break; 
+case 3842: sOBJ_TYPE = "Warehouse Partition Mapping"; break; 
+case 4352: sOBJ_TYPE = "Fact Group"; break; 
+case 4864: sOBJ_TYPE = "Resolution"; break; 
+case 5376: sOBJ_TYPE = "Attribute form"; break; 
+case 5377: sOBJ_TYPE = "Form"; break; 
+case 5378: sOBJ_TYPE = "Form"; break; 
+case 5632: sOBJ_TYPE = "Schema"; break; 
+case 6144: sOBJ_TYPE = "Catalog"; break; 
+case 6400: sOBJ_TYPE = "Catalog definition"; break; 
+case 6656: sOBJ_TYPE = "Column"; break; 
+case 7168: sOBJ_TYPE = "Property Set"; break; 
+case 7424: sOBJ_TYPE = "Database Instance"; break; 
+case 7680: sOBJ_TYPE = "Database login"; break; 
+case 7936: sOBJ_TYPE = "Database connection"; break; 
+case 8192: sOBJ_TYPE = "Project"; break; 
+case 8448: sOBJ_TYPE = "Server Definition"; break; 
+case 8704: sOBJ_TYPE = "User"; break; 
+case 8705: sOBJ_TYPE = "User Group"; break; 
+case 9216: sOBJ_TYPE = "Configuration"; break; 
+case 9472: sOBJ_TYPE = "Request"; break; 
+case 9984: sOBJ_TYPE = "Search"; break; 
+case 10240: sOBJ_TYPE = "Search folder"; break; 
+case 10752: sOBJ_TYPE = "Function Package Definition"; break; 
+case 11008: sOBJ_TYPE = "Role"; break; 
+case 11009: sOBJ_TYPE = "Transformation"; break; 
+case 11264: sOBJ_TYPE = "Security role"; break; 
+case 12032: sOBJ_TYPE = "Consolidation"; break; 
+case 12288: sOBJ_TYPE = "Consolidation Element"; break; 
+case 12544: sOBJ_TYPE = "Event"; break; 
+case 12800: sOBJ_TYPE = "Schedule"; break; 
+case 13056: sOBJ_TYPE = "Schedule"; break; 
+case 13312: sOBJ_TYPE = "Link"; break; 
+case 13568: sOBJ_TYPE = "Warehouse Table"; break; 
+case 13569: sOBJ_TYPE = "Partition table"; break; 
+case 13824: sOBJ_TYPE = "Table source"; break; 
+case 14080: sOBJ_TYPE = "HTML Document"; break;  
+case 14081: sOBJ_TYPE = "Document"; break; 
+case 14336: sOBJ_TYPE = "Drill Map"; break; 
+case 14592: sOBJ_TYPE = "DBMS"; break; 
+case 14848: sOBJ_TYPE = "Security Filter"; break;
+default:  sOBJ_TYPE = "Unknown"; break;
+}
+
+			java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+			printOut( "\"" + arr[i+1] + "\",\""+ arr[i+2] +"\","+  sID +","+ sOBJ_TYPE +",\""+ sNAME +"\",\""+ sPATH +"\","+ sOWNER +","+ formatter.format(sMODIFICATION_TIME) );
+			fResultSet.moveNext();  
+	}	}
+	} catch (Exception e) {
+		printErr("Error: " + e.getLocalizedMessage());
+		printErr("Error: " + e.getMessage());
+		printErr("Error: " + e.toString());
+	//	printOut( fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString() + "," + sFOLDER );
+}	}
+</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>PROD Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>XXXXX</TEST_USERNAME>
+<TEST_PASSWORD>XXXXX</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

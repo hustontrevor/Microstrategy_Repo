@@ -1,0 +1,6 @@
+SELECT *
+FROM INFORMATION_SCHEMA.COLUMNS c
+WHERE 
+--TABLE_SCHEMA = 'Schema_Name'
+--AND TABLE_NAME = 'Table_Name'
+c.COLUMN_NAME = 'Provider_key'

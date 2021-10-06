@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>//LIST ALL SECURITY ROLES;&#13;
+//LIST SECURITY ROLES FOR USER "Bob Adams" IN PROJECT "MicroStrategy Tutorial";&#13;
+//NAME: The name of the security role, returned as a string.&#13;
+&#13;
+&#13;
+//LIST PRIVILEGES FOR SECURITY ROLE "RoleName";&#13;
+//CATEGORY_NAME: The name of the category associated with the security role.&#13;
+//PRIVILEGES: A ResultSet listing the privileges contained within the security role category.&#13;
+//	PRIVILEGE_NAME: The name of the privilege, returned as a string.&#13;
+//	PRIVILEGE_TOKEN: The token associated with the privilege, such as "WEBUSER". Returned as a string&#13;
+&#13;
+&#13;
+ResultSet fResultSet = executeCapture("LIST ALL SECURITY ROLES;");&#13;
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");&#13;
+&#13;
+printOut("sNAME,sCATEGORY_NAME,sPRIVILEGE_NAME,sPRIVILEGE_TOKEN");&#13;
+&#13;
+try{&#13;
+fResultSet.moveFirst();  	&#13;
+while(!fResultSet.isEof()){ &#13;
+	String sPrivilegeLn = "";&#13;
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();&#13;
+&#13;
+//    String[] arr = { "Admit Date","Budget Actual End Date","Budget Actual Start Date","Budget CRG End Date","Budget CRG Start Date","Budget Evaluation Period End Date","Budget Evaluation Period Start Date","Care System Effective End Date","Care System Effective Start Date","Claim Date","Claim Service Date","Coverage End Date","Coverage Start Date","Current Line Of Business End Date","Current Line Of Business Start Date","Discharge Date","Member DOB","Paid Date","Paid Through Date","Person DOB","Posted Date","Product End Date","Product Start Date","QBPC Effective Date","QBPC Term Date","QBVP Effective Date","QBVP Term Date","Reporting Period","Rx Effective Date","Rx Termination Date","Service Date","Termination Date","VIS Paid Thru Date","Visit Service End Date","Visit Service Start Date"};&#13;
+//    Set&lt;String&gt; names = new HashSet&lt;String&gt;(Arrays.asList(arr));&#13;
+//    if ( names.contains(sNAME) ){&#13;
+//     if ( sNAME.toLowerCase().contains("city") || sNAME.toLowerCase().contains("county")|| sNAME.toLowerCase().contains("state")|| sNAME.toLowerCase().contains("zip")){&#13;
+&#13;
+	ResultSet rsPropertySet = executeCapture("LIST ALL PRIVILEGES FOR SECURITY ROLE '" + sNAME + "';");&#13;
+	rsPropertySet.moveFirst();  	&#13;
+	while(!rsPropertySet.isEof()){ &#13;
+		sPrivilegeLn += "\"" + sNAME + "\",";&#13;
+&#13;
+		String sCATEGORY_NAME = rsPropertySet.getResultCell(DisplayPropertyEnum.CATEGORY_NAME).getValueString();&#13;
+&#13;
+		ResultSet rsPRIVILEGES = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.PRIVILEGES).getValue();&#13;
+		rsPRIVILEGES.moveFirst();  	&#13;
+		while(!rsPRIVILEGES.isEof()){ 			&#13;
+			String sPRIVILEGE_NAME = rsPRIVILEGES.getResultCell(DisplayPropertyEnum.PRIVILEGE_NAME).getValueString();&#13;
+			String sPRIVILEGE_TOKEN = rsPRIVILEGES.getResultCell(DisplayPropertyEnum.PRIVILEGE_TOKEN).getValueString();&#13;
+			&#13;
+			printOut("\"" + sNAME + "\",\"" + sCATEGORY_NAME + "\",\"" +  sPRIVILEGE_NAME  + "\",\"" + sPRIVILEGE_TOKEN + "\"");&#13;
+			&#13;
+		rsPRIVILEGES.moveNext();&#13;
+		}&#13;
+	rsPropertySet.moveNext();&#13;
+	}&#13;
+&#13;
+fResultSet.moveNext();  &#13;
+}&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+	printErr("Error: " + e.getMessage());&#13;
+	printErr("Error: " + e.toString());	&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS/>
+<CLASSPATH/>
+<TEST_INPUT/>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// 
+//  LIST all REPORTS, DOCUMENTS, AND FILTERS with GUID and OWNER TH - 2016
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+printOut( "GUID,TYPE,NAME,FOLDER,DEP_COUNT,Filter,Custom Group,Template,Grid Report,Graph Report,SQL Report,Text Report,Data Mart Report,Base Report,Grid Graph Report,Non Interactive Report,Intelligent Cube,Metric,Subtotal,Subtotal,Predictive Metric,Training metric,AutoStyle,Base Formula,Folder,Prompt,Boolean prompt,Long number prompt,Text prompt,Numeric prompt,Date prompt,Object prompt,Elements prompt,Expression prompt,Expression draft prompt,Big Decimal Prompt,Function,Attribute,Role Attribute,Transformation Attribute,Abstract Attribute,Fact,System Hierarchy,Hierarchy,Ordered User Hierarchy,Hierarchy,Logical Table,Metadata Partition Mapping,Warehouse Partition Mapping,Fact Group,Resolution,Attribute form,Form,Form,Schema,Catalog,Catalog definition,Column,Property Set,Database Instance,Database login,Database connection,Project,Server Definition,User,User Group,Configuration,Request,Search, Search folder, Function Package Definition, Role, Transformation, Security role, Consolidation, Consolidation Element, Event, Schedule, Schedule, Link, Warehouse Table, Partition table, Table source, HTML Document,Document, Drill Map, DBMS, Security Filter,Unknown" );
+
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
+ResultSet fResultSet = executeCapture("LIST ALL TABLES FOR PROJECT '" + sProject + "';");
+
+try{
+fResultSet.moveFirst();  	
+while(!fResultSet.isEof()){ 
+
+	String sID = "";
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+	String sFOLDER = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString();
+	
+	if ( sNAME.toUpperCase().contains("BUDGET") ){
+
+	int iDEP_COUNT = 0;
+	HashMap&lt;Integer,Integer&gt; DEPENDS = new HashMap&lt;Integer, Integer&gt;();
+DEPENDS.put(256 ,0);
+DEPENDS.put(257 ,0);
+DEPENDS.put(512 ,0);
+DEPENDS.put(768 ,0);
+DEPENDS.put(769 ,0);
+DEPENDS.put(770 ,0);
+DEPENDS.put(771 ,0);
+DEPENDS.put(772 ,0);
+DEPENDS.put(773 ,0);
+DEPENDS.put(774 ,0);
+DEPENDS.put(775 ,0);
+DEPENDS.put(776 ,0);
+DEPENDS.put(1024,0);
+DEPENDS.put(1025,0);
+DEPENDS.put(1026,0);
+DEPENDS.put(1027,0);
+DEPENDS.put(1028,0);
+DEPENDS.put(1536,0);
+DEPENDS.put(1792,0);
+DEPENDS.put(2048,0);
+DEPENDS.put(2560,0);
+DEPENDS.put(2561,0);
+DEPENDS.put(2562,0);
+DEPENDS.put(2563,0);
+DEPENDS.put(2564,0);
+DEPENDS.put(2565,0);
+DEPENDS.put(2566,0);
+DEPENDS.put(2567,0);
+DEPENDS.put(2568,0);
+DEPENDS.put(2569,0);
+DEPENDS.put(2571,0);
+DEPENDS.put(2816,0);
+DEPENDS.put(3072,0);
+DEPENDS.put(3073,0);
+DEPENDS.put(3074,0);
+DEPENDS.put(3075,0);
+DEPENDS.put(3328,0);
+DEPENDS.put(3584,0);
+DEPENDS.put(3585,0);
+DEPENDS.put(3586,0);
+DEPENDS.put(3587,0);
+DEPENDS.put(3840,0);
+DEPENDS.put(3841,0);
+DEPENDS.put(3842,0);
+DEPENDS.put(4352,0);
+DEPENDS.put(4864,0);
+DEPENDS.put(5376,0);
+DEPENDS.put(5377,0);
+DEPENDS.put(5378,0);
+DEPENDS.put(5632,0);
+DEPENDS.put(6144,0);
+DEPENDS.put(6400,0);
+DEPENDS.put(6656,0);
+DEPENDS.put(7168,0);
+DEPENDS.put(7424,0);
+DEPENDS.put(7680,0);
+DEPENDS.put(7936,0);
+DEPENDS.put(8192,0);
+DEPENDS.put(8448,0);
+DEPENDS.put(8704,0);
+DEPENDS.put(8705,0);
+DEPENDS.put(9216,0);
+DEPENDS.put(9472,0);
+DEPENDS.put(9984,0);
+DEPENDS.put(10240,0);
+DEPENDS.put(10752,0);
+DEPENDS.put(11008,0);
+DEPENDS.put(11009,0);
+DEPENDS.put(11264,0);
+DEPENDS.put(12032,0);
+DEPENDS.put(12288,0);
+DEPENDS.put(12544,0);
+DEPENDS.put(12800,0);
+DEPENDS.put(13056,0);
+DEPENDS.put(13312,0);
+DEPENDS.put(13568,0);
+DEPENDS.put(13569,0);
+DEPENDS.put(13824,0);
+DEPENDS.put(14080,0);
+DEPENDS.put(14081,0);
+DEPENDS.put(14336,0);
+DEPENDS.put(14592,0);
+DEPENDS.put(14848,0);
+DEPENDS.put(15000,0);
+
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR TABLE \"" + sNAME + "\"  FOR PROJECT '" + sProject + "';");
+	rsPropertySet.moveFirst();  	
+	while(!rsPropertySet.isEof()){ 
+		sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+//		String sOWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();
+//		Date dMODIFICATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();			
+
+	rsPropertySet.moveNext();
+	}
+
+	String exeCap = "LIST ALL DEPENDENTS FOR TABLE \"" + sNAME + "\" IN FOLDER \"\\Schema Objects\\Tables\" RECURSIVELY IN PROJECT \"" + sProject + "\";";		
+	ResultSet depResultSet = executeCapture( exeCap );
+	if ( depResultSet != null ){
+		depResultSet.moveFirst();  	
+		while(!depResultSet.isEof()){
+
+
+			int iDSS_OBJECT_TYPE = (int) depResultSet.getResultCell(DisplayPropertyEnum.DSS_OBJECT_TYPE).getValue();
+
+			iDEP_COUNT++;
+			if ( DEPENDS.get(iDSS_OBJECT_TYPE) == null ) 
+				DEPENDS.put(15000,DEPENDS.get(15000)+1);
+			else
+				DEPENDS.put(iDSS_OBJECT_TYPE,DEPENDS.get(iDSS_OBJECT_TYPE)+1);
+			depResultSet.moveNext();  
+		}
+	}	
+
+	printOut(sID + ",TABLE,\"" + sNAME + "\",\"" + sFOLDER+ "\"," + iDEP_COUNT + "," + DEPENDS.get(256 )+ "," + DEPENDS.get(257 )+ "," + DEPENDS.get(512 )+ "," + DEPENDS.get(768 )+ "," + DEPENDS.get(769 )+ "," + DEPENDS.get(770 )+ "," + DEPENDS.get(771 )+ "," + DEPENDS.get(772 )+ "," + DEPENDS.get(773 )+ "," + DEPENDS.get(774 )+ "," + DEPENDS.get(775 )+ "," + DEPENDS.get(776 )+ "," + DEPENDS.get(1024)+ "," + DEPENDS.get(1025)+ "," + DEPENDS.get(1026)+ "," + DEPENDS.get(1027)+ "," + DEPENDS.get(1028)+ "," + DEPENDS.get(1536)+ "," + DEPENDS.get(1792)+ "," + DEPENDS.get(2048)+ "," + DEPENDS.get(2560)+ "," + DEPENDS.get(2561)+ "," + DEPENDS.get(2562)+ "," + DEPENDS.get(2563)+ "," + DEPENDS.get(2564)+ "," + DEPENDS.get(2565)+ "," + DEPENDS.get(2566)+ "," + DEPENDS.get(2567)+ "," + DEPENDS.get(2568)+ "," + DEPENDS.get(2569)+ "," + DEPENDS.get(2571)+ "," + DEPENDS.get(2816)+ "," + DEPENDS.get(3072)+ "," + DEPENDS.get(3073)+ "," + DEPENDS.get(3074)+ "," + DEPENDS.get(3075)+ "," + DEPENDS.get(3328)+ "," + DEPENDS.get(3584)+ "," + DEPENDS.get(3585)+ "," + DEPENDS.get(3586)+ "," + DEPENDS.get(3587)+ "," + DEPENDS.get(3840)+ "," + DEPENDS.get(3841)+ "," + DEPENDS.get(3842)+ "," + DEPENDS.get(4352)+ "," + DEPENDS.get(4864)+ "," + DEPENDS.get(5376)+ "," + DEPENDS.get(5377)+ "," + DEPENDS.get(5378)+ "," + DEPENDS.get(5632)+ "," + DEPENDS.get(6144)+ "," + DEPENDS.get(6400)+ "," + DEPENDS.get(6656)+ "," + DEPENDS.get(7168)+ "," + DEPENDS.get(7424)+ "," + DEPENDS.get(7680)+ "," + DEPENDS.get(7936)+ "," + DEPENDS.get(8192)+ "," + DEPENDS.get(8448)+ "," + DEPENDS.get(8704)+ "," + DEPENDS.get(8705)+ "," + DEPENDS.get(9216)+ "," + DEPENDS.get(9472)+ "," + DEPENDS.get(9984)+ "," + DEPENDS.get(10240)+ "," + DEPENDS.get(10752)+ "," + DEPENDS.get(11008)+ "," + DEPENDS.get(11009)+ "," + DEPENDS.get(11264)+ "," + DEPENDS.get(12032)+ "," + DEPENDS.get(12288)+ "," + DEPENDS.get(12544)+ "," + DEPENDS.get(12800)+ "," + DEPENDS.get(13056)+ "," + DEPENDS.get(13312)+ "," + DEPENDS.get(13568)+ "," + DEPENDS.get(13569)+ "," + DEPENDS.get(13824)+ "," + DEPENDS.get(14080)+ "," + DEPENDS.get(14081)+ "," + DEPENDS.get(14336)+ "," + DEPENDS.get(14592)+ "," + DEPENDS.get(14848) + "," + DEPENDS.get(15000) );
+	}
+fResultSet.moveNext();  
+}
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+	printErr("Error: " + e.getMessage());
+	printErr("Error: " + e.toString());
+//	printOut( fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString() + "," + sFOLDER );
+}
+
+</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj Falcon RFQA</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

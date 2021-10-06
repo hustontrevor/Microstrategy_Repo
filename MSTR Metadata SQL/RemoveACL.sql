@@ -1,0 +1,83 @@
+DECLARE @Project as nvarchar(250);										
+SET @Project = 'MyProj';
+
+DECLARE @removeClient as nvarchar(250);										
+SET @removeClient = 'CustomerKS_2021';
+										
+										
+WITH DIR AS (										
+	SELECT o.PROJECT_ID, o.OBJECT_ID, o.PARENT_ID, o.OBJECT_NAME NAME, CAST('\' AS nvarchar(max)) FOLDER									
+		FROM DSSMDOBJINFO o								
+		WHERE o.PARENT_ID = '00000000-0000-0000-0000-000000000000'								
+		AND o.OBJECT_NAME <> 'Managed Objects'								
+	UNION ALL									
+	SELECT o.PROJECT_ID, o.OBJECT_ID, o.PARENT_ID, o.OBJECT_NAME NAME, o2.FOLDER + o2.NAME + '\' FOLDER									
+		FROM DSSMDOBJINFO o								
+		JOIN DIR o2 ON o.PARENT_ID = o2.OBJECT_ID AND o.PROJECT_ID = o2.PROJECT_ID								
+		WHERE o.OBJECT_NAME <> 'System Objects'								
+)										
+,OBJTYPETEXT AS (										
+	SELECT 		 1 ID, 'FILTER' TYPENAME 							
+	UNION SELECT 2 , 'TEMPLATE'			UNION SELECT 3 , 'REPORT'			UNION SELECT 4 , 'METRIC'			UNION SELECT 6 , 'AUTOSTYLE'
+	UNION SELECT 8 , 'FOLDER'			UNION SELECT 10 , 'PROMPT'			UNION SELECT 11 , 'FUNCTION'		UNION SELECT 12 , 'ATTRIBUTE' 	
+	UNION SELECT 13 , 'FACT'			UNION SELECT 14 , 'HIERARCHY'		UNION SELECT 15 , 'TABLE'			UNION SELECT 18 , 'SHORTCUT' 	
+	UNION SELECT 21 , 'ATTRIBUTE ID'	UNION SELECT 22 , 'SCHEMA'			UNION SELECT 23 , 'CELL FORMAT' 	UNION SELECT 24 , 'WAREHOUSE CATALOG' 				
+	UNION SELECT 25 , 'WAREHOUSE CATALOG DEFINITION'						UNION SELECT 26 , 'TABLE COLUMN'	UNION SELECT 28 , 'PROPERTY SETS' 		
+	UNION SELECT 34 , 'USERS/GROUPS'	UNION SELECT 39 , 'SEARCH'			UNION SELECT 42 , 'PACKAGE'			UNION SELECT 43 , 'TRANSFORMATION'		
+	UNION SELECT 47 , 'CONSOLIDATION'	UNION SELECT 48 , 'DERIVED ELEMENT' UNION SELECT 52 , 'LINK'		UNION SELECT 53 , 'WAREHOUSE TABLE' 						
+	UNION SELECT 55 , 'DOCUMENT'		UNION SELECT 56 , 'DRILLMAP'		UNION SELECT 58 , 'SECFILTER'		UNION SELECT 60 , 'ANSWER' 			
+	UNION SELECT 61 , 'GRAPH STYLE'		UNION SELECT 71 , 'PALETTE' 							
+	--ELSE 'OTHERS'									
+	)									
+,RIGHTSTEXT AS (									
+	SELECT		199 RIGHTS, 'VIEW' ACL
+	UNION SELECT 223 , 'MODIFY'		
+	UNION SELECT 255 , 'FULLCONTROL'	
+	UNION SELECT 268435711 , 'DENIEDALL'			
+	 -- CHILD								
+	UNION SELECT 536871111 , 'VIEW' 						
+	UNION SELECT 536871135 , 'MODIFY' 						
+	UNION SELECT 536871167 , 'FULLCONTROL' 						
+	UNION SELECT 805306623 , 'DENIEDALL'  	
+)
+
+
+										
+SELECT 										
+dbo.fn_UniqueidentifierToCharMSTR(o.OBJECT_ID) GUID										
+
+,'REMOVE ACE FROM ' + UPPER(ot.TYPENAME) + ' ''' + o.OBJECT_NAME 										
+  + ''' IN FOLDER ''' + REPLACE(d.Folder,@Project + '\','') + ''' GROUP ''' + t.OBJECT_NAME + ''' '		  									
+  + ' FOR PROJECT ''' + @Project + ''';' AS CMD		
+	
+										
+,ISNULL(STUFF((SELECT '; ' + CAST(s1.RIGHTS AS nVARCHAR(MAX))										
+     FROM DSSMDOBJSECU s1  										
+		JOIN DSSMDOBJINFO t1 ON s1.TRUST_ID = t1.OBJECT_ID								
+     WHERE s1.OBJECT_ID = o.OBJECT_ID AND s1.PROJECT_ID = o.PROJECT_ID 										
+		AND t1.OBJECT_ID = t.object_id								
+     FOR XML PATH('')),1,1,''),'') OTHERACCESS										
+										
+FROM DSSMDOBJINFO o  -- MSTR Object										
+JOIN DSSMDOBJSECU s  --security mapping										
+	ON s.OBJECT_ID = o.OBJECT_ID AND s.PROJECT_ID = o.PROJECT_ID									
+JOIN DSSMDOBJINFO t 										
+	ON s.TRUST_ID = t.OBJECT_ID									
+										
+JOIN DIR d ON o.OBJECT_ID = d.OBJECT_ID AND d.PROJECT_ID = o.PROJECT_ID										
+LEFT JOIN OBJTYPETEXT ot ON ot.ID = o.OBJECT_TYPE		
+
+JOIN RIGHTSTEXT r	ON r.RIGHTS = s.RIGHTS								
+										
+WHERE 										
+o.PROJECT_ID = (Select p.object_id From DSSMDOBJINFO p Where p.OBJECT_NAME = @Project AND p.OBJECT_TYPE = 32)										
+										
+AND t.OBJECT_NAME  LIKE '%' + @removeClient + '%'
+ --AND t.SUBTYPE = 8704 -- Users only										
+										
+ --AND o.object_type = 8  -- Folders only										
+AND o.OBJECT_TYPE NOT IN (18)  -- No Shortcuts										
+AND d.FOLDER NOT LIKE '%\Profiles\%'										
+										
+										
+GROUP BY o.PROJECT_ID, o.OBJECT_ID, o.OBJECT_NAME, o.OBJECT_TYPE, ot.TYPENAME , d.FOLDER ,t.OBJECT_ID ,T.OBJECT_NAME										

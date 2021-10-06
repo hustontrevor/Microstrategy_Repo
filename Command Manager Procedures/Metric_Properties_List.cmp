@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>List&lt;String&gt; list = new ArrayList&lt;String&gt;();&#13;
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");&#13;
+&#13;
+//printOut("");&#13;
+&#13;
+try{&#13;
+// Get all Metrics &#13;
+ResultSet fResultSet = executeCapture("LIST ALL METRICS FOR PROJECT '" + sProject + "';");&#13;
+fResultSet.moveFirst();  	&#13;
+while(!fResultSet.isEof()){ &#13;
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString().replaceAll("'","''");&#13;
+	String sPATH = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString().replaceAll("'","''");&#13;
+	Boolean bHIDDEN = (Boolean) fResultSet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();&#13;
+&#13;
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR METRIC '" + sNAME + "' IN FOLDER '" + sPATH + "' FOR PROJECT '" + sProject + "';");&#13;
+	rsPropertySet.moveFirst();  	&#13;
+	while(!rsPropertySet.isEof()){ &#13;
+		if (bDebug){	printOut(sNAME + "," + sPATH + "," + bHIDDEN); }&#13;
+&#13;
+		String NAME = rsPropertySet.getResultCell(DisplayPropertyEnum.NAME).getValueString().replaceAll("'","''");&#13;
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString().replaceAll("'","''");&#13;
+		String DESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.DESCRIPTION).getValueString().replaceAll("'","''");&#13;
+		String LONG_DESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.LONG_DESCRIPTION).getValueString().replaceAll("'","''");&#13;
+		String CREATION_TIME = formatter.format((Date)rsPropertySet.getResultCell(DisplayPropertyEnum.CREATION_TIME).getValue());&#13;
+		String MODIFICATION_TIME = formatter.format((Date)rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue());&#13;
+		String OWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString().replaceAll("'","''");&#13;
+		Boolean HIDDEN = (Boolean) rsPropertySet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();&#13;
+		String FORMULA = rsPropertySet.getResultCell(DisplayPropertyEnum.FORMULA).getValueString().replaceAll("'","''");		&#13;
+		String CONDITIONALITY = rsPropertySet.getResultCell(DisplayPropertyEnum.CONDITIONALITY).getValueString().replaceAll("'","''");		&#13;
+		String EXPRESSION = rsPropertySet.getResultCell(DisplayPropertyEnum.EXPRESSION).getValueString().replaceAll("'","''");&#13;
+		Boolean ALLOW_SMART_METRIC = (Boolean) rsPropertySet.getResultCell(DisplayPropertyEnum.ALLOW_SMART_METRIC).getValue();		&#13;
+	//	Boolean ALLOW_REMOVE_REPORT_FILTER_METRIC = (Boolean) rsPropertySet.getResultCell(DisplayPropertyEnum.ALLOW_REMOVE_REPORT_FILTER_METRIC).getValue();&#13;
+	//	String TOTAL_SUB_FUNC_METRIC = rsPropertySet.getResultCell(DisplayPropertyEnum.TOTAL_SUB_FUNC_METRIC).getValueString().replaceAll("'","''");&#13;
+	//	String DYN_AGG_FUNC_METRIC = rsPropertySet.getResultCell(DisplayPropertyEnum.DYN_AGG_FUNC_METRIC).getValueString().replaceAll("'","''");&#13;
+	//	String METRIC_COLUMN_ALIAS = rsPropertySet.getResultCell(DisplayPropertyEnum.METRIC_COLUMN_ALIAS).getValueString().replaceAll("'","''");&#13;
+		ResultSet DIMENSIONALITY_RESULT_SET = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.DIMENSIONALITY_RESULT_SET).getValue();&#13;
+		//	String DIMENSIONALITY = DIMENSIONALITY_RESULT_SET.getResultCell(DisplayPropertyEnum.DIMENSIONALITY).getValueString().replaceAll("'","''");&#13;
+		ResultSet TRANSFORMATION_RESULT_SET = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.TRANSFORMATION_RESULT_SET).getValue();&#13;
+		//	String TRANSFORMATION = TRANSFORMATION_RESULT_SET.getResultCell(DisplayPropertyEnum.TRANSFORMATION).getValueString().replaceAll("'","''");&#13;
+		&#13;
+		list.add("'METRIC','" + sID + "','" + sNAME + "','" + sPATH + "','" + FORMULA + "','" + EXPRESSION + "','" + CONDITIONALITY + "'"); &#13;
+	&#13;
+		rsPropertySet.moveNext();&#13;
+	 }&#13;
+	fResultSet.moveNext();  &#13;
+}&#13;
+&#13;
+// Get all Facts &#13;
+ fResultSet = executeCapture("LIST ALL FACTS FOR PROJECT '" + sProject + "';");&#13;
+fResultSet.moveFirst();  	&#13;
+while(!fResultSet.isEof()){ &#13;
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString().replaceAll("'","''");&#13;
+	String sPATH = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString().replaceAll("'","''");&#13;
+	Boolean bHIDDEN = (Boolean) fResultSet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();&#13;
+&#13;
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR FACT '" + sNAME + "' IN FOLDER '" + sPATH + "' FOR PROJECT '" + sProject + "';");&#13;
+	rsPropertySet.moveFirst();  	&#13;
+	while(!rsPropertySet.isEof()){ &#13;
+		if (bDebug){	printOut(sNAME + "," + sPATH + "," + bHIDDEN); }&#13;
+		&#13;
+		String NAME = rsPropertySet.getResultCell(DisplayPropertyEnum.NAME).getValueString().replaceAll("'","''");&#13;
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString().replaceAll("'","''");&#13;
+		String DESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.DESCRIPTION).getValueString().replaceAll("'","''");&#13;
+		String LONG_DESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.LONG_DESCRIPTION).getValueString().replaceAll("'","''");&#13;
+		String CREATION_TIME = formatter.format((Date)rsPropertySet.getResultCell(DisplayPropertyEnum.CREATION_TIME).getValue());&#13;
+		String MODIFICATION_TIME = formatter.format((Date)rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue());&#13;
+		String OWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString().replaceAll("'","''");&#13;
+		Boolean HIDDEN = (Boolean) rsPropertySet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();&#13;
+		&#13;
+		ResultSet rsSCHEMA_EXPRESSION_LIST = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.SCHEMA_EXPRESSION_LIST).getValue();&#13;
+		rsSCHEMA_EXPRESSION_LIST.moveFirst();  	&#13;
+		while(!rsSCHEMA_EXPRESSION_LIST.isEof()){ &#13;
+			String SCHEMA_EXPRESSION = rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_EXPRESSION).getValueString().replaceAll("'","''");&#13;
+			String MAPPING_METHOD = rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.MAPPING_METHOD).getValueString().replaceAll("'","''");&#13;
+			//ResultSet SCHEMA_CANDIDATE_TABLE_LIST = (ResultSet) rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_CANDIDATE_TABLE_LIST).getValue();&#13;
+				//String SCHEMA_CANDIDATE_TABLE = SCHEMA_CANDIDATE_TABLE_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_CANDIDATE_TABLE).getValueString().replaceAll("'","''");&#13;
+				//String MAPPING_FLAG = SCHEMA_CANDIDATE_TABLE_LIST.getResultCell(DisplayPropertyEnum.MAPPING_FLAG).getValueString().replaceAll("'","''");&#13;
+		&#13;
+			list.add("'FACT','" + sID + "','" + sNAME + "','" + sPATH + "',NULL,'" + SCHEMA_EXPRESSION + "',NULL");&#13;
+			rsSCHEMA_EXPRESSION_LIST.moveNext();&#13;
+		}&#13;
+		rsPropertySet.moveNext();&#13;
+	}&#13;
+	fResultSet.moveNext(); &#13;
+}&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+	printErr("Error: " + e.getMessage());&#13;
+	printErr("Error: " + e.toString());&#13;
+}&#13;
+&#13;
+&#13;
+///////////   WRITE FILE  //////////////////////////////&#13;
+&#13;
+PrintWriter pw = null;&#13;
+try {	&#13;
+	pw = new PrintWriter(&#13;
+	new OutputStreamWriter(new FileOutputStream(sOutputLocation + ".sql" ), "UTF-8"));&#13;
+//	pw.println( "sID,sNAME,sWAREHOUSE_TABLE_NAME,sCOLUMN,sDATA_TYPE" );&#13;
+	&#13;
+	&#13;
+pw.println("CREATE TABLE #MetricFacts ( src varchar(10), sID  varchar(max), sNAME varchar(max),sPATH varchar(max) ,FORMULA varchar(max) ,EXPRESSION varchar(max), CONDITIONALITY  varchar(max) )" );&#13;
+pw.println("GO " );&#13;
+pw.println(" " );&#13;
+pw.println("INSERT INTO #MetricFacts " );&#13;
+pw.println("( " );&#13;
+pw.println("	src " );&#13;
+pw.println("	,sID " );&#13;
+pw.println("	,sNAME " );&#13;
+pw.println("	,sPATH " );&#13;
+pw.println("	,FORMULA " );&#13;
+pw.println("	,EXPRESSION " );&#13;
+pw.println("	,CONDITIONALITY " );&#13;
+pw.println(") " );&#13;
+&#13;
+	Iterator iterator = list.iterator();&#13;
+	Boolean first = true;&#13;
+	while(iterator.hasNext()) {&#13;
+		if (first) pw.println(              " SELECT " + iterator.next() );&#13;
+		else pw.println( "UNION ALL SELECT " + iterator.next() );&#13;
+		first = false;&#13;
+	}&#13;
+//	pw.println("select * from Taco.dbo._MSTR_Tables_Columns");&#13;
+&#13;
+	pw.flush();&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+} finally {&#13;
+	pw.close();&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+<INPUT INPUT_TYPE="STRING">sOutputLocation</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj Dev</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>C:\\Users\\XXXXXXXXXX\\Documents\\METRICS</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

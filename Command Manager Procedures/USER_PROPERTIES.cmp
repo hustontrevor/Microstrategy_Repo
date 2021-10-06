@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>//ID: The object ID of the user, returned as a string.&#13;
+//LOGIN: The user login, returned as a string.&#13;
+//FULL_NAME: The full name of the user, returned as a string.&#13;
+//DESCRIPTION: The long description of the user, returned as a string.&#13;
+//LONG_DESCRIPTION: The long description of the user, returned as a string.&#13;
+//CREATION_TIME: The date and time the user was created, returned as a date/string.&#13;
+//MODIFICATION_TIME: The date and time the user was last modified, returned as a date/string.&#13;
+//NT_LINK: The NT link associated with the user, returned as a string.&#13;
+//LDAP_LINK: The LDAP link associated with the user, returned as a string.&#13;
+//TRUSTED_LOGIN: Whether the user is a trusted login, returned as a string.&#13;
+//WAREHOUSE_LINK: The warehouse link associated with the user, returned as a string.&#13;
+//ALLOW_CHANGE_PASSWORD: Whether the user's password can be changed, returned as a boolean value.&#13;
+//ALLOW_STANDARD_AUTHENTICATION: Whether standard authentication is allowed for the user, returned as a boolean value.&#13;
+//CHANGE_PASSWORD: Whether the user's password must be changed, returned as a boolean value.&#13;
+//PASSWORD_EXPIRATION: The date the user password expires, returned as a string.&#13;
+//PASSWORD_EXPIRATION_FREQUENCY: The frequency with which the user's password expires, returned as an integer/string.&#13;
+//ENABLED: Whether the user is enabled, returned as a boolean value.&#13;
+//USER_GROUP_RESULTSET: A ResultSet containing a list of user groups to which the user belongs.&#13;
+	//USER_GROUP: The name of the user group, returned as a string.&#13;
+//DS_ADDRESSES_RESULTSET: A ResultSet containing a list of Distribution Services addresses configured for the user.&#13;
+	//DS_ADDRESS_DEVICE: The Distribution Services device used by the address, returned as a string.&#13;
+	//DS_ADDRESS_NAME: The name of the address, returned as a string.&#13;
+	//DS_ADDRESS_PHYSICAL: The physical address corresponding to the address, returned as a string.&#13;
+	//DS_ADDRESS_TYPE: The type of address, such as email, file, or print, returned as a string.&#13;
+&#13;
+//ResultSet fResultSet = executeCapture("LIST ALL PROPERTIES FOR USER 'myuser';");&#13;
+ResultSet fResultSet = executeCapture("LIST ALL PROPERTIES FOR USERS IN GROUP 'Everyone';");&#13;
+&#13;
+printOut("ID,LOGIN,FULL_NAME,DESCRIPTION,CREATION_TIME,MODIFICATION_TIME,ALLOW_CHANGE_PASSWORD,ALLOW_STANDARD_AUTHENTICATION,CHANGE_PASSWORD,ENABLED,USER_GROUP,ADDRESSES");&#13;
+try{&#13;
+&#13;
+fResultSet.moveFirst();  &#13;
+while(!fResultSet.isEof()){&#13;
+&#13;
+String sOutLn = (String) fResultSet.getResultCell(DisplayPropertyEnum.ID).getValue(); &#13;
+sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.LOGIN).getValue(); &#13;
+sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.FULL_NAME).getValue(); &#13;
+sOutLn += "," + ((String) fResultSet.getResultCell(DisplayPropertyEnum.DESCRIPTION).getValue()).replaceAll(",",""); &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.LONG_DESCRIPTION).getValue(); &#13;
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");&#13;
+sOutLn += "," + formatter.format((Date) fResultSet.getResultCell(DisplayPropertyEnum.CREATION_TIME).getValue());  &#13;
+sOutLn += "," + formatter.format((Date) fResultSet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue()); &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.NT_LINK).getValue(); &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.LDAP_LINK).getValue(); &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.TRUSTED_LOGIN).getValue(); &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.WAREHOUSE_LINK).getValue(); &#13;
+sOutLn += "," + ((Boolean) fResultSet.getResultCell(DisplayPropertyEnum.ALLOW_CHANGE_PASSWORD).getValue()).toString();  &#13;
+sOutLn += "," + ((Boolean) fResultSet.getResultCell(DisplayPropertyEnum.ALLOW_STANDARD_AUTHENTICATION).getValue()).toString();  &#13;
+sOutLn += "," + ((Boolean) fResultSet.getResultCell(DisplayPropertyEnum.CHANGE_PASSWORD).getValue()).toString();  &#13;
+//sOutLn += "," + (String) fResultSet.getResultCell(DisplayPropertyEnum.PASSWORD_EXPIRATION).getValue(); &#13;
+//sOutLn += "," + fResultSet.getResultCell(DisplayPropertyEnum.PASSWORD_EXPIRATION_FREQUENCY).getValueString(); &#13;
+sOutLn += "," + ((Boolean) fResultSet.getResultCell(DisplayPropertyEnum.ENABLED).getValue()).toString(); &#13;
+&#13;
+&#13;
+ResultSet rsUSER_GROUP_RESULTSET = (ResultSet) fResultSet.getResultCell(DisplayPropertyEnum.USER_GROUP_RESULTSET).getValue(); &#13;
+rsUSER_GROUP_RESULTSET.moveFirst();  &#13;
+sOutLn += ",";&#13;
+while(!rsUSER_GROUP_RESULTSET.isEof()){&#13;
+	sOutLn += ((String) rsUSER_GROUP_RESULTSET.getResultCell(DisplayPropertyEnum.USER_GROUP).getValue()).replaceAll(",","..") + ";"; &#13;
+&#13;
+	rsUSER_GROUP_RESULTSET.moveNext();&#13;
+}&#13;
+&#13;
+ResultSet rsDS_ADDRESSES_RESULTSET = (ResultSet) fResultSet.getResultCell(DisplayPropertyEnum.DS_ADDRESSES_RESULTSET).getValue(); &#13;
+rsDS_ADDRESSES_RESULTSET.moveFirst();  &#13;
+sOutLn += ",";&#13;
+while(!rsDS_ADDRESSES_RESULTSET.isEof()){&#13;
+	if ( ((String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_DEVICE).getValue() ).equals("Email") ){&#13;
+//		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_DEVICE).getValue() + "/"; &#13;
+//		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_NAME).getValue() + "/"; &#13;
+		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_PHYSICAL).getValue(); &#13;
+//		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_TYPE).getValue() + ";"; &#13;
+	}&#13;
+	&#13;
+	rsDS_ADDRESSES_RESULTSET.moveNext();&#13;
+}&#13;
+&#13;
+printOut(sOutLn);&#13;
+&#13;
+&#13;
+fResultSet.moveNext(); &#13;
+}&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+	printErr("Error: " + e.getMessage());&#13;
+	printErr("Error: " + e.toString());&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS/>
+<CLASSPATH/>
+<TEST_INPUT/>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>PROD Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>XXXXX</TEST_USERNAME>
+<TEST_PASSWORD>XXXXX</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// Please update the following variables in the code according to your database:
+
+String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+String connectionURL = "jdbc:sqlserver://Local-sqlbidev1;database=MSTR_Metadata;integratedSecurity=true;";
+
+
+printOut("Start ");
+try {
+
+	//load driver here
+	Class.forName(driverName).newInstance();
+	
+//	printOut("1");
+	//use jdbc url, database login, and database password to create connection
+	java.sql.Connection conn = java.sql.DriverManager.getConnection(connectionURL);
+//	printOut("2");
+	java.sql.Statement stmt = conn.createStatement();
+	//execute sql query
+	String dbQuery = "select top 1 \'hi\', c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME, c.COLUMN_NAME + C.TABLE_NAME, c.IS_NULLABLE, c.DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS c"; 
+
+	java.sql.ResultSet result = stmt.executeQuery (dbQuery);
+//	printOut("3");
+	while (result.next()){
+		String name = result.getString(3);
+
+		printOut("object " + name );
+	}     
+	result.close();
+	stmt.close();
+	conn.close();
+ 
+} catch (Exception e) { 
+	printErr(e.getMessage());   
+} </CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS/>
+<CLASSPATH>
+<CLASSPATH_ITEM>C:\Program Files (x86)\Microsoft JDBC Driver 7.0 for SQL Server\sqljdbc_7.0\enu\mssql-jdbc-7.0.0.jre8.jar</CLASSPATH_ITEM>
+<CLASSPATH_ITEM>C:\Program Files (x86)\Microsoft JDBC Driver 7.0 for SQL Server\sqljdbc_7.0\enu\auth\x86\sqljdbc_auth.dll</CLASSPATH_ITEM>
+</CLASSPATH>
+<TEST_INPUT/>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

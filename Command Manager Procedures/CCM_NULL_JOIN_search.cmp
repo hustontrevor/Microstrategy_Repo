@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// Please update the following variables in the code according to your database:
+
+//       CHECK THE CLASSPATH !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//           ensure the path is correct to the sqlserver jdbc jar and auth dll files on your machine
+//           if authorization fails on subsequent runs, you may need to restart Command Manager
+
+String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+String connectionURL = "jdbc:sqlserver://Local-sqlbidev1;database=MSTR_Metadata;integratedSecurity=true;";
+
+
+printOut("Start ");
+try {
+
+// Retrieve all the IS_NULLABLE columns in all DBs ------------------------------------
+
+	//load driver here
+	Class.forName(driverName).newInstance();
+	
+	//use jdbc url, database login, and database password to create connection
+	java.sql.Connection conn = java.sql.DriverManager.getConnection(connectionURL);
+
+	java.sql.Statement stmt = conn.createStatement();
+	//execute sql query
+	String dbQuery = "CREATE TABLE [dbo].[#THTMP] ( "
+		+ "DBNAME NVARCHAR(256) NULL "
+		+ ",SCHEMANAME     NVARCHAR(256)                        NULL "
+		+ ",TABLENAME     NVARCHAR(256)                        NULL "
+		+ ",COLUMNNAME       varchar(200)                          NULL "
+		+ ",ISNULLABLE       varchar(200)                          NOT NULL "
+		+ ",DATATYPE       varchar(200)                          NOT NULL "
+		+ ");  "
+
+		+ "execute sp_msforeachdb 'IF ''?'' LIKE ''CCM_%_DW'' "
+		+ "BEGIN INSERT INTO #THTMP "
+		+ "  select distinct ''?'' DBNAME, '''' SCHEMANAME, c.TABLE_NAME TABLENAME, c.COLUMN_NAME COLUMNNAME, c.IS_NULLABLE ISNULLABLE, c.DATA_TYPE DATATYPE "
+		+ "  from ?.INFORMATION_SCHEMA.COLUMNS c  where c.IS_NULLABLE=''YES''"	
+		+ "END ';  "
++ " SELECT top 1 * FROM #THTMP t; ";
+printOut(dbQuery);
+	java.sql.ResultSet result0 = stmt.executeQuery(dbQuery);
+
+	while ( result0.next() ){
+		printOut("tst  " + result0.getBoolean("COLUMNNAME")  );
+	}
+	
+//------------------------------------------------------------------------------------------------
+	
+// Collect LIST PROPERTIES FOR ALL ATTRIBUTES IN sProject---------------------------------
+
+// Stores all Columns and their WHTables with other properties
+HashMap &lt;String, HashMap&lt;String, String[]&gt;&gt; hmExpsWHTable = new HashMap &lt;String, HashMap&lt;String, String[]&gt;&gt;();
+
+// Retrieve all the Attributes in the Project
+ResultSet rsAttributes = executeCapture("LIST ALL ATTRIBUTES FOR PROJECT '" + sProject + "';");
+rsAttributes.moveFirst();  	
+while(!rsAttributes.isEof()){ 
+	
+	String sNAME = rsAttributes.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+	String sPATH = rsAttributes.getResultCell(DisplayPropertyEnum.PATH).getValueString();
+
+	// Retrieve all the Properties for the Attributes
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR ATTRIBUTE '" + sNAME + "' IN FOLDER '" + sPATH + "' FOR PROJECT '" + sProject + "';");
+	rsPropertySet.moveFirst();  	
+	while(!rsPropertySet.isEof()){ 
+
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+
+		// Retrieve all the Attribute's Forms
+		ResultSet rsATTRIBUTE_FORM = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.ATTRIBUTE_FORM).getValue();
+		rsATTRIBUTE_FORM.moveFirst();  	
+		while(!rsATTRIBUTE_FORM.isEof()){ 
+		
+			String sATTRIBUTE_FORM_NAME = rsATTRIBUTE_FORM.getResultCell(DisplayPropertyEnum.ATTRIBUTE_FORM_NAME).getValueString();
+			String sATTRIBUTE_LOOKUP_TABLE = rsATTRIBUTE_FORM.getResultCell(DisplayPropertyEnum.ATTRIBUTE_LOOKUP_TABLE).getValueString();	
+						
+			// Retrieve all the Form's Expressions (DB columns)
+			ResultSet rsATTRIBUTE_EXPRESSION_LIST = (ResultSet) rsATTRIBUTE_FORM.getResultCell(DisplayPropertyEnum.ATTRIBUTE_EXPRESSION_LIST).getValue();
+			if ( rsATTRIBUTE_EXPRESSION_LIST != null ) {
+				int iExpCount = rsATTRIBUTE_EXPRESSION_LIST.getRowCount();
+				rsATTRIBUTE_EXPRESSION_LIST.moveFirst(); 
+				while(!rsATTRIBUTE_EXPRESSION_LIST.isEof()){ 
+					
+					String sSCHEMA_EXPRESSION = rsATTRIBUTE_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_EXPRESSION).getValueString();
+					HashMap &lt;String, String[]&gt; hmWHTables = new HashMap &lt;String, String[]&gt;();
+					
+					// Retrieve all the Form Expression's Table mappings
+					ResultSet rsATTRIBUTE_MAPPING_TABLE_LIST = (ResultSet) rsATTRIBUTE_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.ATTRIBUTE_MAPPING_TABLE_LIST).getValue();
+					int iMapCount = rsATTRIBUTE_MAPPING_TABLE_LIST.getRowCount();
+					
+					// If multiple Expressions or multiple tables, then this Form might be used to join data in SQL
+					if ( iExpCount &gt; 1 || iMapCount &gt; 1 ){
+					
+						rsATTRIBUTE_MAPPING_TABLE_LIST.moveFirst();  
+						while(!rsATTRIBUTE_MAPPING_TABLE_LIST.isEof()){ 	
+							String sSCHEMA_CANDIDATE_TABLE = rsATTRIBUTE_MAPPING_TABLE_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_CANDIDATE_TABLE).getValueString();	
+							
+							//Retrieve the Table properties to get the WarehouseName (MSSQL Table name)
+							ResultSet rsTableProps = executeCapture("LIST ALL PROPERTIES FOR TABLE '" + sSCHEMA_CANDIDATE_TABLE + "' FOR PROJECT '" + sProject + "';");
+							rsTableProps.moveFirst();
+							String sWAREHOUSE_TABLE_NAME = rsTableProps.getResultCell(DisplayPropertyEnum.WAREHOUSE_TABLE_NAME).getValueString();	
+							
+							String [] saInfo = new String[] {sSCHEMA_CANDIDATE_TABLE,sATTRIBUTE_FORM_NAME,sNAME,sID,sPATH};							
+							
+							if ( !hmExpsWHTable.containsKey(sSCHEMA_EXPRESSION) ){								
+								hmWHTables.put(sWAREHOUSE_TABLE_NAME, saInfo);
+								hmExpsWHTable.put(sSCHEMA_EXPRESSION, hmWHTables );
+							}else{
+								hmExpsWHTable.get(sSCHEMA_EXPRESSION).put(sWAREHOUSE_TABLE_NAME, saInfo );								
+							}					
+							
+							rsATTRIBUTE_MAPPING_TABLE_LIST.moveNext();  
+						}
+					}
+					rsATTRIBUTE_EXPRESSION_LIST.moveNext();
+				}
+			}
+			rsATTRIBUTE_FORM.moveNext();
+		}
+		rsPropertySet.moveNext();
+	 }
+	rsAttributes.moveNext();  
+}
+printOut( hmExpsWHTable.size() );
+//printOut( "MSTABLEID,EXPRESSION,MSTABLE,WHTABLE,FORM,ATTRIBUTE,PATH");
+
+
+
+//------------------------------------------------------------------------------------------------
+
+// Check DB Cols table for MS expression -----------------------------------------------------------
+
+printOut( "WHTABLE,EXPRESSION,MSTABLE,FORM,ATTRIBUTE,ID,PATH,NULLABLE,DBLIST");
+for ( Map.Entry &lt;String, HashMap&lt;String, String[]&gt;&gt; expression1 : hmExpsWHTable.entrySet() ) {
+	for ( Map.Entry &lt;String, String[]&gt; whtbl : expression1.getValue().entrySet() ) {
+		//printOut(whtbl.getKey() + "," + expression1.getKey().replaceAll(",",";") + "," + String.join(",", whtbl.getValue()) );
+		String dbQuery2 = "SELECT "
+			+ " TABLENAME "
+			+ ",COLUMNNAME "
+			+ ",ISNULLABLE "
+			+ ",DATATYPE  "
+			+ ",stuff((select '; ' + DBNAME as [text()] "
+			+ "        from #THTMP xt "
+			+ "        where xt.TABLENAME = t.TABLENAME AND xt.COLUMNNAME = t.COLUMNNAME AND xt.ISNULLABLE = t.ISNULLABLE AND xt.DATATYPE = t.DATATYPE "
+			+ " 		order by xt.DBNAME "
+			+ "        for xml path('')), 1, 2, '') DBLIST  "
+
+			+ "FROM #THTMP t "
+			+ "WHERE TABLENAME = '" + whtbl.getKey() + "' AND COLUMNNAME = '" + expression1.getKey() + "' "
+			+ "GROUP BY "
+			+ " TABLENAME "
+			+ ",COLUMNNAME "
+			+ ",ISNULLABLE "
+			+ ",DATATYPE ";
+
+		java.sql.ResultSet result = stmt.executeQuery(dbQuery2);
+		while ( result.next() ){
+			printOut(whtbl.getKey() + "," + expression1.getKey().replaceAll(",",";") + "," + String.join(",", whtbl.getValue()) + "," + result.getString("ISNULLABLE")  + "," +  result.getString("DBLIST") );
+		}		
+	}
+}
+
+// CLOSE IT DOWN ---------------------------------------------------------------------
+		
+	stmt.execute("drop table #THTMP  ");	
+
+	stmt.close();
+	conn.close();
+
+
+//----------------------------------------------------------------------------
+
+
+
+} catch (Exception e) { 
+	printErr(e.getMessage());   
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH>
+<CLASSPATH_ITEM>C:\Program Files (x86)\MicroStrategy\Command Manager\mssql-jdbc-7.0.0.jre8.jar</CLASSPATH_ITEM>
+<CLASSPATH_ITEM>C:\Program Files (x86)\Microsoft JDBC Driver 7.0 for SQL Server\sqljdbc_7.0\enu\auth\x86\sqljdbc_auth.dll</CLASSPATH_ITEM>
+</CLASSPATH>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj Dev</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

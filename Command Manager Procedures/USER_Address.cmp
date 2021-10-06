@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>//ALTER ADDRESS "&lt;address_name&gt;"  [NAME "&lt;new_address_name&gt;"] [PHYSICALADDRESS "&lt;physical_address&gt;"] [DELIVERYTYPE (EMAIL | FILE | PRINT)] [DEVICE "&lt;device_name&gt;"] [SETASDEFAULT (TRUE | FALSE)] FOR USER "&lt;login_name&gt;";&#13;
+&#13;
+//ADD ADDRESS "&lt;address_name&gt;"  PHYSICALADDRESS "&lt;physical_address&gt;"  DELIVERYTYPE (EMAIL | FILE | PRINT) DEVICE "&lt;device_name&gt;" [SETASDEFAULT (TRUE|FALSE)] TO USER "&lt;login_name&gt;";&#13;
+&#13;
+&#13;
+ResultSet fResultSet = executeCapture("LIST ALL PROPERTIES FOR USER 'myuser';");&#13;
+//ResultSet fResultSet = executeCapture("LIST ALL PROPERTIES FOR USERS IN GROUP 'Everyone';");&#13;
+&#13;
+printOut("LOGIN,DEVICE,NAME,ADDRESS,TYPE");&#13;
+try{&#13;
+&#13;
+fResultSet.moveFirst();  &#13;
+while(!fResultSet.isEof()){&#13;
+&#13;
+String sLOGIN = (String) fResultSet.getResultCell(DisplayPropertyEnum.LOGIN).getValue(); &#13;
+&#13;
+ResultSet rsDS_ADDRESSES_RESULTSET = (ResultSet) fResultSet.getResultCell(DisplayPropertyEnum.DS_ADDRESSES_RESULTSET).getValue(); &#13;
+rsDS_ADDRESSES_RESULTSET.moveFirst();  &#13;
+String sOutLn = ",";&#13;
+while(!rsDS_ADDRESSES_RESULTSET.isEof()){&#13;
+	if ( ((String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_TYPE).getValue() ).toUpperCase().equals("EMAIL") ){&#13;
+		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_DEVICE).getValue() + ","; &#13;
+		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_NAME).getValue() + ","; &#13;
+		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_PHYSICAL).getValue() + ","; &#13;
+		sOutLn += (String) rsDS_ADDRESSES_RESULTSET.getResultCell(DisplayPropertyEnum.DS_ADDRESS_TYPE).getValue(); &#13;
+		&#13;
+	printOut(sLOGIN + sOutLn);&#13;
+	sOutLn = ",";&#13;
+	}&#13;
+&#13;
+	rsDS_ADDRESSES_RESULTSET.moveNext();&#13;
+}&#13;
+&#13;
+&#13;
+fResultSet.moveNext(); &#13;
+}&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+	printErr("Error: " + e.getMessage());&#13;
+	printErr("Error: " + e.toString());&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS/>
+<CLASSPATH/>
+<TEST_INPUT/>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

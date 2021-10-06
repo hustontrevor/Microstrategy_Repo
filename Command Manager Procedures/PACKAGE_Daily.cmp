@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>/*&#13;
+*	July 2017 - TH&#13;
+*&#13;
+*	DevePackageAutomation &#13;
+*		1 creates the package XML &#13;
+*		2 creates the package MMP using projectMerge.exe &#13;
+*		3 runs the Create Undo against the Destination project&#13;
+*		4 runs the final package ino the Destination project&#13;
+*		5 copy the Package into the specified ToBeDeployed directories&#13;
+*/&#13;
+&#13;
+&#13;
+List&lt;String[]&gt; updates = new ArrayList&lt;String[]&gt;();&#13;
+&#13;
+// {ExecutionOrderALPHA ,PackageFileName ,FolderID ,SourceProject}&#13;
+<<<<<<< .mine
+	updates.add( new String[] {"CCM_01_" ,"SchemaObj", "95C3B713318B43D490EE789BE27D298C","MyProj Dev"});&#13;
+	updates.add( new String[] {"CCM_02_" ,"Filters", "17A09B1E4484ABF604F95DADF573B621","MyProj Dev"});&#13;
+	updates.add( new String[] {"CCM_03_" ,"Metrics", "E0CCB9CF22104A489CBE78D974AFD19E","MyProj Dev"});&#13;
+	updates.add( new String[] {"SS_01_" ,"SelfService", "F18E005946E5BD0C3F484698B5FE07BA","MyProj"});&#13;
+||||||| .r258
+	updates.add( new String[] {"CCM_01_" ,"SchemaObj", "95C3B713318B43D490EE789BE27D298C","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"CCM_02_" ,"Filters", "CA2E76087685440FBB15F6374E9A3968","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"CCM_03_" ,"Metrics", "E0CCB9CF22104A489CBE78D974AFD19E","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"SS_01_" ,"SelfService", "F18E005946E5BD0C3F484698B5FE07BA","MyProj Falcon RFQA"});&#13;
+=======
+	updates.add( new String[] {"CCM_01_" ,"SchemaObj", "95C3B713318B43D490EE789BE27D298C","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"CCM_02_" ,"Filters", "17A09B1E4484ABF604F95DADF573B621","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"CCM_03_" ,"Metrics", "E0CCB9CF22104A489CBE78D974AFD19E","MyProj Falcon Dev"});&#13;
+	updates.add( new String[] {"SS_01_" ,"SelfService", "F18E005946E5BD0C3F484698B5FE07BA","MyProj Falcon RFQA"});&#13;
+>>>>>>> .r259
+&#13;
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyyMMdd_HH");&#13;
+String timeStamp = new java.text.SimpleDateFormat("_yyyyMMdd_HH_mm").format(new Date());&#13;
+	&#13;
+for (String[] line : updates){&#13;
+	&#13;
+	String sExecutionOrderALPHA = line[0];&#13;
+	String sPackageFileName = line[1];&#13;
+	String sFolderID = line[2];&#13;
+	String sSourceProject = line[3];	&#13;
+	&#13;
+	PrintWriter pw = null;&#13;
+	String xmlName = sPackageFileName + "_PACKAGEDEF.xml";&#13;
+	String packageName = sExecutionOrderALPHA + sPackageFileName + timeStamp + ".mmp";&#13;
+	String packageUndo = sExecutionOrderALPHA + sPackageFileName + timeStamp + "Undo.mmp";&#13;
+&#13;
+	try {	&#13;
+	///////////  1 WRITE XML FILE  //////////////////////////////&#13;
+		pw = new PrintWriter( new OutputStreamWriter(new FileOutputStream( sOutputLocation + xmlName ), "UTF-8"));&#13;
+	printOut("write " + xmlName);&#13;
+&#13;
+		pw.println( "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;"&#13;
+			+ "&lt;ProjectMerge&gt;&lt;Preview&gt;&lt;/Preview&gt;"&#13;
+			+ "&lt;MigrationAction&gt;3&lt;/MigrationAction&gt;"&#13;
+			+ "&lt;GenerateUndoPackage&gt;&lt;/GenerateUndoPackage&gt;"&#13;
+			+ "&lt;ImportPackage&gt;&lt;/ImportPackage&gt;"&#13;
+			+ "&lt;PackageFile&gt;" + sOutputLocation + packageName + "&lt;/PackageFile&gt;"&#13;
+			+ "&lt;AddDependents&gt;No&lt;/AddDependents&gt;"&#13;
+			+ "&lt;ContainerID&gt;" + sFolderID + "&lt;/ContainerID&gt;"&#13;
+			+ "&lt;Connections&gt;"&#13;
+			+ "	&lt;SourceConnection&gt;&lt;Location&gt;" + sSourceServer + "&lt;/Location&gt;"&#13;
+			+ "	&lt;Project&gt;" + sSourceProject + "&lt;/Project&gt;&lt;ConnectionMode&gt;3-tier&lt;/ConnectionMode&gt;"&#13;
+			+ "	&lt;AuthenticationMode&gt;Standard&lt;/AuthenticationMode&gt;&lt;Login&gt;" + sSourceUser + "&lt;/Login&gt;&lt;/SourceConnection&gt;&lt;/Connections&gt;"&#13;
+			+ "&lt;Rules&gt;&lt;Operations&gt;&lt;CategoryLevel&gt;&lt;Application&gt;&lt;Replace /&gt;&lt;/Application&gt;&lt;Configuration&gt;&lt;Replace /&gt;&lt;/Configuration&gt;&lt;Schema&gt;&lt;Replace /&gt;&lt;/Schema&gt;&lt;/CategoryLevel&gt;"&#13;
+			+ "		&lt;TypeLevel&gt;&lt;Operation&gt;&lt;!--Attribute--&gt;&lt;ID&gt;12&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--AutoStyle--&gt;&lt;ID&gt;6&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Base Formula--&gt;&lt;ID&gt;7&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Consolidation--&gt;&lt;ID&gt;47&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Custom Column--&gt;&lt;ID&gt;6658&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Custom Group--&gt;&lt;ID&gt;257&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Data Mart Report--&gt;&lt;ID&gt;772&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Derived Element--&gt;&lt;ID&gt;48&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Document--&gt;&lt;ID&gt;14081&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Drill Map--&gt;&lt;ID&gt;56&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Event--&gt;&lt;ID&gt;49&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Fact--&gt;&lt;ID&gt;13&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Filter--&gt;&lt;ID&gt;1&lt;/ID&gt;&lt;replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Folder--&gt;&lt;ID&gt;8&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Function--&gt;&lt;ID&gt;11&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--System Hierarchy--&gt;&lt;ID&gt;14&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--HTML Document--&gt;&lt;ID&gt;55&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Intelligent Cube--&gt;&lt;ID&gt;776&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Logical Table--&gt;&lt;ID&gt;3840&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Metadata Partition Mapping--&gt;&lt;ID&gt;3841&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Metric--&gt;&lt;ID&gt;4&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Prompt--&gt;&lt;ID&gt;10&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Grid--&gt;&lt;ID&gt;3&lt;/ID&gt;&lt;replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Schedule--&gt;&lt;ID&gt;51&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Search--&gt;&lt;ID&gt;39&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Security Filter--&gt;&lt;ID&gt;58&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Shortcut--&gt;&lt;ID&gt;18&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Template--&gt;&lt;ID&gt;2&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Role--&gt;&lt;ID&gt;43&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;Operation&gt;&lt;!--Warehouse Partition Mapping--&gt;&lt;ID&gt;3842&lt;/ID&gt;&lt;Replace/&gt;&lt;/Operation&gt;&lt;/TypeLevel&gt;"&#13;
+			+ "		&lt;/Operations&gt;"&#13;
+			+ "	&lt;Options&gt;&lt;Option&gt;&lt;ID&gt;ACL&lt;/ID&gt;&lt;Replace /&gt;&lt;/Option&gt;"&#13;
+			+ "	&lt;Option&gt;&lt;ID&gt;UpdateSchema&lt;/ID&gt;&lt;SchemaUpdateNone /&gt;&lt;/Option&gt;"&#13;
+			+ "	&lt;Option&gt;&lt;ID&gt;OMOnOffSettings&lt;/ID&gt;&lt;None /&gt;&lt;/Option&gt;&lt;/Options&gt;&lt;/Rules&gt;"&#13;
+			+ "&lt;Logs&gt;&lt;Log&gt;&lt;File&gt;" + sLogFile + "&lt;/File&gt;&lt;LogLevel&gt;All&lt;/LogLevel&gt;&lt;/Log&gt;&lt;/Logs&gt;&lt;/ProjectMerge&gt;");&#13;
+		//c:\Temp\PrjMrg.Log&#13;
+		&#13;
+		pw.flush();&#13;
+		pw.close();&#13;
+	&#13;
+	///////////  2 CALL OUT TO EXE TO PRODUCE PACKAGE  //////////////////////////////&#13;
+	printOut("create " + packageName);&#13;
+		// C:\\Program Files (x86)\\Common Files\\MicroStrategy\\projectmerge.exe&#13;
+		Process pr = java.lang.Runtime.getRuntime().exec( sProjectMergeEXEPath + " -f" + sOutputLocation + xmlName + " -sp" + sSourceUserPass + " -sup");&#13;
+		pr.waitFor();&#13;
+&#13;
+		&#13;
+//  SELFSERVICE ONLY NEEDS TO GO TO QA, SKIP PACKAGING AND RFQA&#13;
+	if ( sExecutionOrderALPHA.contains("CCM")  ){&#13;
+		///////////  3 CREATE UNDO  //////////////////////////////&#13;
+		printOut("create " + packageUndo);&#13;
+			execute( "CREATE UNDOPACKAGE LOCAL \"" + sOutputLocation + packageUndo + "\"" + " FOR PROJECT \"" + sDestProject + "\" FROM PACKAGE LOCAL \"" + sOutputLocation + packageName + "\";");&#13;
+			&#13;
+		///////////  4 RUN PACKAGE  //////////////////////////////&#13;
+		printOut("import " + packageName);&#13;
+			execute( "IMPORT PACKAGE \"" + sOutputLocation + packageName + "\" NOLOCKS FOR PROJECT \"" + sDestProject + "\";");&#13;
+&#13;
+		///////////  5 COPY PACKAGE  //////////////////////////////&#13;
+		if ( sPackages2BDeployed1 != null &amp;&amp; sPackages2BDeployed1 != "" )&#13;
+			java.nio.file.Files.copy(new File(sOutputLocation + packageName).toPath(), new File(sPackages2BDeployed1 + packageName).toPath());&#13;
+	}	&#13;
+	&#13;
+	if ( sPackages2BDeployed2 != null &amp;&amp; sPackages2BDeployed2 != "" )&#13;
+		java.nio.file.Files.copy(new File(sOutputLocation + packageName).toPath(), new File(sPackages2BDeployed2 + packageName).toPath());&#13;
+	&#13;
+&#13;
+	} catch (Exception e) {&#13;
+		printErr("Error: " + e.getLocalizedMessage());&#13;
+	} finally {&#13;
+		if (pw != null) {&#13;
+			pw.close();&#13;
+		}&#13;
+	}		&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sOutputLocation</INPUT>
+<INPUT INPUT_TYPE="STRING">sProjectMergeEXEPath</INPUT>
+<INPUT INPUT_TYPE="STRING">sSourceServer</INPUT>
+<INPUT INPUT_TYPE="STRING">sSourceUser</INPUT>
+<INPUT INPUT_TYPE="STRING">sSourceUserPass</INPUT>
+<INPUT INPUT_TYPE="STRING">sDestProject</INPUT>
+<INPUT INPUT_TYPE="STRING">sLogFile</INPUT>
+<INPUT INPUT_TYPE="STRING">sPackages2BDeployed1</INPUT>
+<INPUT INPUT_TYPE="STRING">sPackages2BDeployed2</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>\\Local-sysXXXXX\MSTR_Packages\Archive\</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>C:\\Program Files (x86)\\Common Files\\MicroStrategy\\projectmerge.exe</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>vm-XXXXX</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>XXXXX</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>administrator</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>MyProj Packaging</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>c:\Temp\PrjMrg.Log</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>\\Local-sysXXXXX\MSTR_Packages\Automated\PackagesToBeDeployed\RFQA\MyProj\</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>\\Local-sysXXXXX\MSTR_Packages\Automated\PackagesToBeDeployed\QA\MyProj\</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>XXXXX</TEST_USERNAME>
+<TEST_PASSWORD>XXXXX</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

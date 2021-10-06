@@ -1,0 +1,71 @@
+//import java.sql.DriverManager ;
+//import java.sql.Statement ;
+//import java.sql.ResultSet ;
+//import java.sql.SQLException ;
+//import java.sql.Connection ;
+
+printOut(1);
+
+java.sql.Connection connection = null;
+java.sql.Statement statement = null;
+java.sql.ResultSet resultSet = null;
+
+printOut(2);
+String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+String urlDriver = "jdbc:sqlserver";
+String SQLserverName = "Local-sqlbidev1";
+String port = "1433";
+String databaseName = "MSTR_Metadata";
+String url = urlDriver + "://" + SQLserverName + ":" + port + ";databaseName=" + databaseName;
+String dbUser = "USAC\\XXXXXXXXXX";
+String dbPass = "XXXXXMMMA";
+
+printOut(3);
+String query = "";
+try {
+	// Create connection object
+	Class.forName(driver);
+
+	connection = java.sql.DriverManager.getConnection(url, dbUser, dbPass);
+printOut(4);
+	// Create Statement object
+	// In this example, retrieving all tables from IS_REPORT_STATS
+	statement = connection.createStatement();
+	query = "SELECT TOP 10 [OBJECT_NAME] FROM [MSTR_Metadata].[dbo].[DSSMDOBJINFO]";
+printOut(1);
+
+	// Execute the query
+	resultSet = statement.executeQuery(query);
+printOut(1);
+	// Loops through ALL rows and retrieves Report ID and JOB ID information
+	while (resultSet.next()) {
+		printOut("Report ID: " + resultSet.getObject("OBJECT_NAME").toString());
+		printOut("\n"); //new line
+	}
+} catch (java.sql.SQLException ex) {
+	//ex.printStackTrace();
+	printErr("Error: " + ex.getLocalizedMessage());
+	printErr("Error: " + ex.getMessage());
+	printErr("Error: " + ex.toString());
+	printOut(query);
+} catch (ClassNotFoundException ex) {
+                // ex.printStackTrace();
+	printErr("Error: " + ex.getLocalizedMessage());
+	printErr("Error: " + ex.getMessage());
+	printErr("Error: " + ex.toString());
+}
+finally {
+	try {
+		if (resultSet != null) {
+			resultSet.close();
+		}
+		if (statement != null) {
+			statement.close();
+		}
+		if (connection != null) {
+			connection.close();
+		}
+	} catch (java.sql.SQLException ex) {
+		ex.printStackTrace();
+	}
+}

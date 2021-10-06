@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>//	
+//
+//	Table_Columns.cpp queries Microstrategy for all Table objects in the desired Project (parameter)
+//	For each Table it collects the Properties which include a ResultSet containing the Physical columns and datatypes form the database mapping.
+//
+//	The collected rows are then output to a .sql file at the network location (parameter) 
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Retrieve all the Attributes in the Project
+ResultSet fResultSet = executeCapture("LIST ALL TABLES FOR PROJECT '" + sProject + "';");
+
+List&lt;String&gt; list = new ArrayList&lt;String&gt;();
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
+//printOut( "sID,sNAME,sWAREHOUSE_TABLE_NAME,sCOLUMN,sDATA_TYPE" );
+
+try{
+fResultSet.moveFirst();  	
+while(!fResultSet.isEof()){ 
+
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+	String sPATH = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString();
+	String sWAREHOUSE_TABLE_NAME = fResultSet.getResultCell(DisplayPropertyEnum.WAREHOUSE_TABLE_NAME).getValueString();
+	
+
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR TABLE '" + sNAME + "' FOR PROJECT '" + sProject + "';");
+	rsPropertySet.moveFirst();  	
+	while(!rsPropertySet.isEof()){ 
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+
+		ResultSet rsLogicalSet = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.TABLE_LOGICAL_VIEW).getValue();  // A ResultSet containing information about the logical view of the table, such as a list of attributes and facts.
+			//Attribute(s) 	Fact(s)  Logical Size
+
+		ResultSet rsPhysicalSet = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.TABLE_PHYSICAL_VIEW).getValue();  //A ResultSet containing a list of table columns and data types.
+	
+		rsPhysicalSet.moveFirst();  	
+		while(!rsPhysicalSet.isEof()){ 
+
+			String sCOLUMN = rsPhysicalSet.getResultCell(DisplayPropertyEnum.TABLE_COLUMN_NAME).getValueString();
+			String sDATA_TYPE = rsPhysicalSet.getResultCell(DisplayPropertyEnum.TABLE_COLUMN_TYPE).getValueString();
+
+		list.add("'" + sID + "','" + sNAME + "','" + sWAREHOUSE_TABLE_NAME + "','" + sCOLUMN + "','" + sDATA_TYPE + "'"); 
+		
+		rsPhysicalSet.moveNext();
+		}	
+
+	rsPropertySet.moveNext();
+	}
+
+fResultSet.moveNext();  
+}
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+	printErr("Error: " + e.getMessage());
+	printErr("Error: " + e.toString());
+//	printOut( fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString() + "," + sFOLDER );
+}
+
+///////////   WRITE FILE  //////////////////////////////
+
+PrintWriter pw = null;
+try {	
+	pw = new PrintWriter(
+	new OutputStreamWriter(new FileOutputStream(sOutputLocation + ".sql" ), "UTF-8"));
+//	pw.println( "sID,sNAME,sWAREHOUSE_TABLE_NAME,sCOLUMN,sDATA_TYPE" );
+	
+	
+pw.println("TRUNCATE TABLE dbo.MSTR_Tables_Columns " );
+pw.println("GO " );
+pw.println(" " );
+pw.println("INSERT INTO dbo._MSTR_Tables_Columns " );
+pw.println("( " );
+pw.println("	RunDate " );
+pw.println("	,Project " );
+pw.println("	,iServer " );
+pw.println("	,TableGUID " );
+pw.println("	,TableName " );
+pw.println("	,WarehouseTableName " );
+pw.println("	,ColumnName " );
+pw.println("	,DataType " );
+pw.println(") " );
+
+	Iterator iterator = list.iterator();
+	Boolean first = true;
+	while(iterator.hasNext()) {
+		if (first) pw.println(              " SELECT getDate(),'" + sProject + "','" + sServerName +  "',"+ iterator.next() );
+		else pw.println( "UNION ALL SELECT getDate(),'" + sProject + "','" + sServerName +  "',"+ iterator.next() );
+		first = false;
+	}
+//	pw.println("select * from Taco.dbo._MSTR_Tables_Columns");
+
+
+	pw.flush();
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+} finally {
+	pw.close();
+}
+</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="STRING">sOutputLocation</INPUT>
+<INPUT INPUT_TYPE="STRING">sServerName</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj Falcon Dev</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>C:\\Users\\XXXXXXXXXX\\Documents\\TABLES</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>vm-XXXXX</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

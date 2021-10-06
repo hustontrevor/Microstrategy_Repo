@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// LIST PROPERTIES FOR ALL FACTS IN sProject&#13;
+/*&#13;
+NAME: The name of the fact, returned as a string.&#13;
+ID: The object ID of the fact, returned as a string.&#13;
+DESCRIPTION: The description of the fact, returned as a string.&#13;
+LONG_DESCRIPTION: The long description of the fact, returned as a string.&#13;
+CREATION_TIME: The date and time the fact was created, returned as a date/string.&#13;
+MODIFICATION_TIME: The date and time the fact was last modified, returned as a date/string.&#13;
+OWNER: The owner of the fact, returned as a string.&#13;
+HIDDEN: Whether the fact is hidden, returned as a boolean value.&#13;
+SCHEMA_EXPRESSION_LIST: A ResultSet containing the names and other related details of schema expressions associated with the fact.&#13;
+	SCHEMA_EXPRESSION: The name of the schema expression, returned as a string.&#13;
+	MAPPING_METHOD: Mapping method for the expression, either automatic or manual. Returned as a string.&#13;
+	SCHEMA_CANDIDATE_TABLE_LIST: A list of source tables for the expression.&#13;
+		SCHEMA_CANDIDATE_TABLE: The table from which the fact can return data, returned as a string.&#13;
+		MAPPING_FLAG: Whether the source table below is mapped, returned as a boolean value.&#13;
+*/&#13;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////&#13;
+&#13;
+// Retrieve all the FACTs in the Project   LIST [ALL] FACTS [IN FOLDER "location_path"] FOR PROJECT "project_name";&#13;
+ResultSet fResultSet = executeCapture("LIST ALL FACTS FOR PROJECT '" + sProject + "';");&#13;
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");&#13;
+&#13;
+printOut("sNAME,sPATH,bHIDDEN,"&#13;
++"sID,dCREATION_TIME,dMODIFICATION_TIME,sOWNER,"&#13;
++"sSCHEMA_EXPRESSION,sMAPPING_METHOD,sTABLES");&#13;
+&#13;
+try{&#13;
+fResultSet.moveFirst();  	&#13;
+while(!fResultSet.isEof()){ &#13;
+	String sFACTLn = "";&#13;
+&#13;
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();&#13;
+	String sPATH = fResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString();&#13;
+	Boolean bHIDDEN = (Boolean) fResultSet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();&#13;
+&#13;
+//  LIST [ALL] PROPERTIES FOR FACT "fact_name" IN FOLDER "location_path" FOR PROJECT "project_name";&#13;
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR FACT '" + sNAME + "' IN FOLDER '" + sPATH + "' FOR PROJECT '" + sProject + "';");&#13;
+	rsPropertySet.moveFirst();  	&#13;
+	while(!rsPropertySet.isEof()){ &#13;
+		sFACTLn += "\"" + sNAME + "\",\"" + sPATH + "\"," + bHIDDEN + ",";&#13;
+&#13;
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();&#13;
+		String sDESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.DESCRIPTION).getValueString();&#13;
+		String sLONG_DESCRIPTION = rsPropertySet.getResultCell(DisplayPropertyEnum.LONG_DESCRIPTION).getValueString();&#13;
+		Date dCREATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.CREATION_TIME).getValue();&#13;
+		Date dMODIFICATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();&#13;
+		String sOWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();&#13;
+&#13;
+		sFACTLn += sID + "," + formatter.format(dCREATION_TIME) + "," + formatter.format(dMODIFICATION_TIME)  + ",\"" + sOWNER + "\",";&#13;
+&#13;
+		ResultSet rsSCHEMA_EXPRESSION_LIST = (ResultSet) rsPropertySet.getResultCell(DisplayPropertyEnum.SCHEMA_EXPRESSION_LIST).getValue();&#13;
+		if ( rsSCHEMA_EXPRESSION_LIST != null ){&#13;
+		rsSCHEMA_EXPRESSION_LIST.moveFirst();  	&#13;
+		while(!rsSCHEMA_EXPRESSION_LIST.isEof()){ &#13;
+			&#13;
+			String sSCHEMA_EXPRESSION = rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_EXPRESSION).getValueString();  &#13;
+			String sMAPPING_METHOD = rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.MAPPING_METHOD).getValueString();  &#13;
+			&#13;
+			String sTables = "";&#13;
+			ResultSet rsSCHEMA_CANDIDATE_TABLE_LIST = (ResultSet) rsSCHEMA_EXPRESSION_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_CANDIDATE_TABLE_LIST).getValue();  &#13;
+			rsSCHEMA_CANDIDATE_TABLE_LIST.moveFirst();  	&#13;
+			while(!rsSCHEMA_CANDIDATE_TABLE_LIST.isEof()){ &#13;
+				String sSCHEMA_CANDIDATE_TABLE = rsSCHEMA_CANDIDATE_TABLE_LIST.getResultCell(DisplayPropertyEnum.SCHEMA_CANDIDATE_TABLE).getValueString();  &#13;
+				Boolean bMAPPING_FLAG = (Boolean) rsSCHEMA_CANDIDATE_TABLE_LIST.getResultCell(DisplayPropertyEnum.MAPPING_FLAG).getValue();  &#13;
+				if ( bMAPPING_FLAG )&#13;
+					sTables += sSCHEMA_CANDIDATE_TABLE + "; ";&#13;
+&#13;
+			rsSCHEMA_CANDIDATE_TABLE_LIST.moveNext();&#13;
+			}&#13;
+			printOut(sFACTLn + "\"" + sSCHEMA_EXPRESSION + "\",\"" + sMAPPING_METHOD + "\"," + sTables);&#13;
+			&#13;
+		rsSCHEMA_EXPRESSION_LIST.moveNext();&#13;
+		}&#13;
+		}else {printOut(sFACTLn + ",,");}&#13;
+	rsPropertySet.moveNext();&#13;
+	 }&#13;
+fResultSet.moveNext();  &#13;
+}&#13;
+} catch (Exception e) {&#13;
+	printErr("Error: " + e.getLocalizedMessage());&#13;
+	printErr("Error: " + e.getMessage());&#13;
+	printErr("Error: " + e.toString());	&#13;
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj Falcon RFQA</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>Dev Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>myuser</TEST_USERNAME>
+<TEST_PASSWORD>xxxxxxxxxxxxxxxxx</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

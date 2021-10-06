@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// 
+//  LIST all REPORTS, DOCUMENTS, AND FILTERS with GUID and OWNER TH - 2016
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+printOut( "GUID,TYPE,NAME,FOLDER,OWNER,MODIFICATION" );
+
+HashMap&lt;String,String&gt; list = new HashMap&lt;String,String&gt;();
+
+java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
+ResultSet fResultSet = executeCapture("LIST ALL REPORTS FOR PROJECT '" + sProject + "';");
+
+try{
+fResultSet.moveFirst();  	
+while(!fResultSet.isEof()){ 
+
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+	String sFOLDER = fResultSet.getResultCell(DisplayPropertyEnum.FOLDER).getValueString();
+	
+	//printOut(sFOLDER + sNAME);
+
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR REPORT \"" + sNAME + "\" IN FOLDER \"" + sFOLDER + "\" FOR PROJECT '" + sProject + "';");
+	rsPropertySet.moveFirst();  	
+	while(!rsPropertySet.isEof()){ 
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+		String sOWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();
+		Date dMODIFICATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();		
+	
+		list.put(sID, "" + sID + ",REPORT,\"" + sNAME + "\",\"" + sFOLDER + "\"," + sOWNER + "," + formatter.format(dMODIFICATION_TIME) ); 
+
+	rsPropertySet.moveNext();
+	}
+		
+	String exeCap = "LIST ALL DEPENDENTS FOR REPORT \"" + sNAME + "\" IN FOLDER \"" + sFOLDER + "\" RECURSIVELY IN PROJECT \"" + sProject + "\";";		
+	ResultSet depResultSet = executeCapture( exeCap );
+	
+	if ( depResultSet != null ){
+		depResultSet.moveFirst();  	
+		while(!depResultSet.isEof()){ 
+			String sDepNAME = depResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();			
+			String sDepFOLDER = depResultSet.getResultCell(DisplayPropertyEnum.PATH).getValueString();
+			String sDepID = depResultSet.getResultCell(DisplayPropertyEnum.ID).getValueString();			
+			String sDepOWNER = depResultSet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();
+			Date dDepMODIFICATION_TIME = (Date) depResultSet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();			
+			
+			int iDSS_OBJECT_TYPE = (int) depResultSet.getResultCell(DisplayPropertyEnum.DSS_OBJECT_TYPE).getValue();			
+			String sOBJ_TYPE = "";
+			switch (iDSS_OBJECT_TYPE){
+			case 256: sOBJ_TYPE = "Filter"; break; 
+			case 257: sOBJ_TYPE = "Custom Group"; break; 
+			case 512: sOBJ_TYPE = "Template"; break; 
+			case 768: sOBJ_TYPE = "Grid Report"; break; 
+			case 769: sOBJ_TYPE = "Graph Report"; break; 
+			case 770: sOBJ_TYPE = "SQL Report"; break; 
+			case 771: sOBJ_TYPE = "Text Report"; break; 
+			case 772: sOBJ_TYPE = "Data Mart Report"; break; 
+			case 773: sOBJ_TYPE = "Base Report"; break; 
+			case 774: sOBJ_TYPE = "Grid Graph Report"; break; 
+			case 775: sOBJ_TYPE = "Non Interactive Report"; break; 
+			case 776: sOBJ_TYPE = "Intelligent Cube"; break; 
+			case 1024: sOBJ_TYPE = "Metric"; break; 
+			case 1025: sOBJ_TYPE = "Subtotal"; break; 
+			case 1026: sOBJ_TYPE = "Subtotal"; break; 
+			case 1027: sOBJ_TYPE = "Predictive Metric"; break; 
+			case 1028: sOBJ_TYPE = "Training metric"; break; 
+			case 1536: sOBJ_TYPE = "AutoStyle"; break; 
+			case 1792: sOBJ_TYPE = "Base Formula"; break; 
+			case 2048: sOBJ_TYPE = "Folder"; break; 
+			case 2560: sOBJ_TYPE = "Prompt"; break; 
+			case 2561: sOBJ_TYPE = "Boolean prompt"; break; 
+			case 2562: sOBJ_TYPE = "Long number prompt"; break; 
+			case 2563: sOBJ_TYPE = "Text prompt"; break; 
+			case 2564: sOBJ_TYPE = "Numeric prompt"; break; 
+			case 2565: sOBJ_TYPE = "Date prompt"; break; 
+			case 2566: sOBJ_TYPE = "Object prompt"; break; 
+			case 2567: sOBJ_TYPE = "Elements prompt"; break; 
+			case 2568: sOBJ_TYPE = "Expression prompt"; break; 
+			case 2569: sOBJ_TYPE = "Expression draft prompt"; break; 
+			case 2571: sOBJ_TYPE = "Big Decimal Prompt"; break; 
+			case 2816: sOBJ_TYPE = "Function"; break; 
+			case 3072: sOBJ_TYPE = "Attribute"; break; 
+			case 3073: sOBJ_TYPE = "Role Attribute"; break; 
+			case 3074: sOBJ_TYPE = "Transformation Attribute"; break; 
+			case 3075: sOBJ_TYPE = "Abstract Attribute"; break; 
+			case 3328: sOBJ_TYPE = "Fact"; break; 
+			case 3584: sOBJ_TYPE = "System Hierarchy"; break; 
+			case 3585: sOBJ_TYPE = "Hierarchy"; break; 
+			case 3586: sOBJ_TYPE = "Ordered User Hierarchy"; break; 
+			case 3587: sOBJ_TYPE = "Hierarchy"; break; 
+			case 3840: sOBJ_TYPE = "Logical Table"; break; 
+			case 3841: sOBJ_TYPE = "Metadata Partition Mapping"; break; 
+			case 3842: sOBJ_TYPE = "Warehouse Partition Mapping"; break; 
+			case 4352: sOBJ_TYPE = "Fact Group"; break; 
+			case 4864: sOBJ_TYPE = "Resolution"; break; 
+			case 5376: sOBJ_TYPE = "Attribute form"; break; 
+			case 5377: sOBJ_TYPE = "Form"; break; 
+			case 5378: sOBJ_TYPE = "Form"; break; 
+			case 5632: sOBJ_TYPE = "Schema"; break; 
+			case 6144: sOBJ_TYPE = "Catalog"; break; 
+			case 6400: sOBJ_TYPE = "Catalog definition"; break; 
+			case 6656: sOBJ_TYPE = "Column"; break; 
+			case 7168: sOBJ_TYPE = "Property Set"; break; 
+			case 7424: sOBJ_TYPE = "Database Instance"; break; 
+			case 7680: sOBJ_TYPE = "Database login"; break; 
+			case 7936: sOBJ_TYPE = "Database connection"; break; 
+			case 8192: sOBJ_TYPE = "Project"; break; 
+			case 8448: sOBJ_TYPE = "Server Definition"; break; 
+			case 8704: sOBJ_TYPE = "User"; break; 
+			case 8705: sOBJ_TYPE = "User Group"; break; 
+			case 9216: sOBJ_TYPE = "Configuration"; break; 
+			case 9472: sOBJ_TYPE = "Request"; break; 
+			case 9984: sOBJ_TYPE = "Search"; break; 
+			case 10240: sOBJ_TYPE = "Search folder"; break; 
+			case 10752: sOBJ_TYPE = "Function Package Definition"; break; 
+			case 11008: sOBJ_TYPE = "Role"; break; 
+			case 11009: sOBJ_TYPE = "Transformation"; break; 
+			case 11264: sOBJ_TYPE = "Security role"; break; 
+			case 12032: sOBJ_TYPE = "Consolidation"; break; 
+			case 12288: sOBJ_TYPE = "Consolidation Element"; break; 
+			case 12544: sOBJ_TYPE = "Event"; break; 
+			case 12800: sOBJ_TYPE = "Schedule"; break; 
+			case 13056: sOBJ_TYPE = "Schedule"; break; 
+			case 13312: sOBJ_TYPE = "Link"; break; 
+			case 13568: sOBJ_TYPE = "Warehouse Table"; break; 
+			case 13569: sOBJ_TYPE = "Partition table"; break; 
+			case 13824: sOBJ_TYPE = "Table source"; break; 
+			case 14080: sOBJ_TYPE = "HTML Document"; break;  
+			case 14081: sOBJ_TYPE = "Document"; break; 
+			case 14336: sOBJ_TYPE = "Drill Map"; break; 
+			case 14592: sOBJ_TYPE = "DBMS"; break; 
+			case 14848: sOBJ_TYPE = "Security Filter"; break;
+			default:  sOBJ_TYPE = "Unknown"; break;
+			}
+
+			//printOut( "GUID,TYPE,NAME,FOLDER,OWNER,MODIFICATION" );
+			list.put(sDepID, "" + sDepID + "," + sOBJ_TYPE + ",\"" + sDepNAME + "\",\"" + sDepFOLDER + "\"," + sDepOWNER + "," + formatter.format(dDepMODIFICATION_TIME) );
+			
+			depResultSet.moveNext();  
+		}
+	}		
+fResultSet.moveNext();  
+}
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+	printErr("Error: " + e.getMessage());
+	printErr("Error: " + e.toString());
+//	printOut( fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString() + "," + sFOLDER );
+}
+
+PrintWriter pw = null;
+try {	
+	pw = new PrintWriter(
+	new OutputStreamWriter(new FileOutputStream("C:\\Users\\XXXXXXXXXX\\Documents\\REPORTS " + sProject + ".csv" ), "UTF-8"));
+	pw.println("GUID,TYPE,NAME,FOLDER,OWNER,MODIFICATION" );
+	
+	Set set = list.entrySet();
+	Iterator iterator = set.iterator();
+	while(iterator.hasNext()) {
+		Map.Entry mentry = (Map.Entry)iterator.next();
+		pw.println(mentry.getValue());
+	}
+	pw.flush();
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+} finally {
+	pw.close();
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>PROD Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>XXXXX</TEST_USERNAME>
+<TEST_PASSWORD>XXXXX</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>

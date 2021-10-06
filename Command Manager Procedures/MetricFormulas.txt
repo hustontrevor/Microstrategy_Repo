@@ -1,0 +1,25 @@
+//list all metrics in the project    
+
+String sProjectName = "MyProj Falcon RFQA";
+printOut("NAME,PATH,EXPR,FORM");
+
+ResultSet oMetrics = executeCapture("LIST ALL METRICS FOR PROJECT '" + sProjectName + "';");     
+oMetrics.moveFirst();      
+while (!oMetrics.isEof() ){
+	//get name and path of this metric to list properties
+	String sMetricName = oMetrics.getFieldValueString(DisplayPropertyEnum.NAME);                
+	String sMetricFolder = oMetrics.getFieldValueString(DisplayPropertyEnum.PATH);  
+
+	String sQuery = "LIST ALL PROPERTIES FOR METRIC \"" + sMetricName + "\" IN FOLDER \"" + sMetricFolder +"\" FOR PROJECT \"" + sProjectName + "\";";
+//	printOut("Name:"+sMetricName);
+//	printOut("Path:"+sMetricFolder);
+	ResultSet oDisplay = executeCapture(sQuery);
+	oDisplay.moveFirst();  
+	while(!oDisplay.isEof() ){
+		String sMetricExpr = oDisplay.getFieldValueString(DisplayPropertyEnum.EXPRESSION);
+		String sMetricForm = oDisplay.getFieldValueString(DisplayPropertyEnum.FORMULA);
+		printOut("\""+sMetricName+"\",\""+sMetricFolder+"\",\""+sMetricExpr+"\",\""+sMetricForm+"\"");
+		oDisplay.moveNext();
+	}
+	oMetrics.moveNext();
+}

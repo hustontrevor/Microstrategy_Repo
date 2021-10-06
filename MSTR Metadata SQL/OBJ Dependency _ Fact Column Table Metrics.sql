@@ -1,0 +1,62 @@
+DECLARE @Project as nvarchar(250);		
+DECLARE @ProjectID as nvarchar(250);		
+SET @Project = 'MyProj Falcon Dev';		
+SET @ProjectID = (Select p.object_id From DSSMDOBJINFO p Where p.OBJECT_NAME = @Project AND p.OBJECT_TYPE = 32);		
+		
+SELECT 		
+o.OBJECT_NAME FACT		
+, od.OBJECT_NAME COL		
+, t.OBJECT_NAME TBL		
+		
+,ISNULL(STUFF((SELECT '; ' + CAST(a.OBJECT_NAME AS nVARCHAR(MAX))		
+     FROM dbo.DSSMDOBJDEPN da  		
+		JOIN DSSMDOBJINFO a ON a.OBJECT_ID = da.OBJECT_ID AND a.PROJECT_ID = da.PROJECT_ID AND a.OBJECT_TYPE = 4
+     WHERE da.DEPN_OBJID = o.OBJECT_ID		
+     and @ProjectID = da.PROJECT_ID		
+     GROUP BY a.OBJECT_NAME		
+     ORDER BY a.OBJECT_NAME		
+     FOR XML PATH('')),1,1,''),' ') [FactMetricList]		
+		
+FROM dbo.DSSMDOBJDEPN d		
+-- fact		
+JOIN DSSMDOBJINFO o ON o.OBJECT_ID = d.OBJECT_ID AND o.PROJECT_ID = d.PROJECT_ID AND O.OBJECT_TYPE = 13		
+-- column		
+JOIN DSSMDOBJINFO od ON od.OBJECT_ID = d.DEPN_OBJID AND od.PROJECT_ID = d.DEPN_PRJID AND od.OBJECT_TYPE = 26 		
+-- fact has table		
+JOIN dbo.DSSMDOBJDEPN d2 ON d2.OBJECT_ID = o.OBJECT_ID AND d2.PROJECT_ID = o.PROJECT_ID 		
+JOIN DSSMDOBJINFO t ON t.OBJECT_ID = d2.DEPN_OBJID AND t.PROJECT_ID = d2.DEPN_PRJID AND t.OBJECT_TYPE = 15  		
+-- table has column		
+JOIN dbo.DSSMDOBJDEPN d3 ON d3.OBJECT_ID = t.OBJECT_ID AND d3.PROJECT_ID = t.PROJECT_ID AND d3.DEPN_OBJID = od.OBJECT_ID		
+		
+WHERE 		
+d.PROJECT_ID = @ProjectID		
+		
+AND dbo.fn_UniqueidentifierToCharMSTR( t.OBJECT_ID ) + dbo.fn_UniqueidentifierToCharMSTR( od.OBJECT_ID ) IN 		
+(		
+SELECT 		
+ dbo.fn_UniqueidentifierToCharMSTR( t.OBJECT_ID ) + dbo.fn_UniqueidentifierToCharMSTR( od.OBJECT_ID ) FACTID		
+		
+FROM dbo.DSSMDOBJDEPN d		
+-- fact		
+JOIN DSSMDOBJINFO o ON o.OBJECT_ID = d.OBJECT_ID AND o.PROJECT_ID = d.PROJECT_ID AND O.OBJECT_TYPE = 13		
+-- column		
+JOIN DSSMDOBJINFO od ON od.OBJECT_ID = d.DEPN_OBJID AND od.PROJECT_ID = d.DEPN_PRJID AND od.OBJECT_TYPE = 26 		
+-- fact has table		
+JOIN dbo.DSSMDOBJDEPN d2 ON d2.OBJECT_ID = o.OBJECT_ID AND d2.PROJECT_ID = o.PROJECT_ID 		
+JOIN DSSMDOBJINFO t ON t.OBJECT_ID = d2.DEPN_OBJID AND t.PROJECT_ID = d2.DEPN_PRJID AND t.OBJECT_TYPE = 15  		
+-- table has column		
+JOIN dbo.DSSMDOBJDEPN d3 ON d3.OBJECT_ID = t.OBJECT_ID AND d3.PROJECT_ID = t.PROJECT_ID AND d3.DEPN_OBJID = od.OBJECT_ID		
+		
+WHERE 		
+d.PROJECT_ID = @ProjectID		
+		
+		
+group by od.OBJECT_ID		
+, od.OBJECT_NAME		
+, t.OBJECT_ID		
+, t.OBJECT_NAME		
+		
+having COUNT(*) > 1		
+)		
+		
+ORDER BY od.OBJECT_NAME, t.OBJECT_NAME, o.OBJECT_NAME		

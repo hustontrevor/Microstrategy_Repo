@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>// String sFOLDER;  //The path to the report, returned as a string.
+// Boolean sHIDDEN;  //Whether the report is hidden, returned as a boolean value.
+// String sNAME;  //The name of the report, returned as a string.
+
+
+// sID;			The object ID of the report, returned as a string.
+// sNAME;			The name of the report, returned as a string.
+// bHIDDEN;			Whether the report is hidden, returned as a boolean value.
+// sOWNER;			The owner of the report, returned as a string.
+// dCREATION_TIME;		The date and time the report was created, returned as a date/string.
+// dMODIFICATION_TIME;		The date and time the report was created, returned as a date/string.
+// sDESCRIPTION;		The description of the report, returned as a string.
+// sLONG_DESCRIPTION;		The long description of the report, returned as a string.
+// rsREPORT_AXIS_RESULT_SET;	A ResultSet containing a list of axes in the report and related details.
+// 	sAXIS_NAME;			The name of the axis, such as "Rows" or "Columns" returned as a string.
+// 	rsTEMPLATE_UNITS_RESULT_SET;	A ResultSet containing the properties of each template object on the axis.
+// 		sID;			The object ID of the template object, returned as a string.
+// 		sPATH;			The path to the template object, returned as a string.
+// 		sTEMPLATE_UNIT;		The name of the template object, returned as a string.
+// 		sTYPE;			The type of the template object, such as "Attribute" returned as a string.
+// sREPORT_FILTER;		The filter associated with the report, returned as a string.
+// sVIEW_FILTER_EXPRESSION;	The view filter associated with the report, returned as a string.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Retrieve all the Attributes in the Project
+ResultSet fResultSet = executeCapture("LIST ALL REPORTS FOR PROJECT '" + sProject + "';");
+
+printOut( "sID,sNAME,sFOLDER,bHIDDEN,sOWNER,dCREATION_TIME,dMODIFICATION_TIME" );
+
+try{
+fResultSet.moveFirst();  	
+while(!fResultSet.isEof()){ 
+
+	String sNAME = fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString();
+	String sFOLDER = fResultSet.getResultCell(DisplayPropertyEnum.FOLDER).getValueString();
+	Boolean bHIDDEN = (Boolean) fResultSet.getResultCell(DisplayPropertyEnum.HIDDEN).getValue();
+	
+//if ( sNAME.equals("Altru 456" ) ) {
+	ResultSet rsPropertySet = executeCapture("LIST ALL PROPERTIES FOR REPORT \"" + sNAME + "\" IN FOLDER \"" + sFOLDER + "\" FOR PROJECT '" + sProject + "';");
+	rsPropertySet.moveFirst();  	
+	while(!rsPropertySet.isEof()){ 
+		String sID = rsPropertySet.getResultCell(DisplayPropertyEnum.ID).getValueString();
+		String sOWNER = rsPropertySet.getResultCell(DisplayPropertyEnum.OWNER).getValueString();
+		Date dCREATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.CREATION_TIME).getValue();
+		Date dMODIFICATION_TIME = (Date) rsPropertySet.getResultCell(DisplayPropertyEnum.MODIFICATION_TIME).getValue();
+
+		java.text.Format formatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+	
+		printOut("" + sID + ",\"" + sNAME + "\",\"" + sFOLDER + "\"," + bHIDDEN + "," + sOWNER + "," + formatter.format(dCREATION_TIME) + "," + formatter.format(dMODIFICATION_TIME) ); 
+
+	rsPropertySet.moveNext();
+	}
+//}
+fResultSet.moveNext();  
+}
+} catch (Exception e) {
+	printErr("Error: " + e.getLocalizedMessage());
+	printErr("Error: " + e.getMessage());
+	printErr("Error: " + e.toString());
+//	printOut( fResultSet.getResultCell(DisplayPropertyEnum.NAME).getValueString() + "," + sFOLDER );
+}</CODE>
+<SAMPLE/>
+<VERSION/>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">sProject</INPUT>
+<INPUT INPUT_TYPE="BOOLEAN">bDebug</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>MyProj</TEST_INPUT_PARAM>
+<TEST_INPUT_PARAM>false</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>PROD Node 1</TEST_PSN_NAME>
+<TEST_USERNAME>XXXXX</TEST_USERNAME>
+<TEST_PASSWORD>XXXXX</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>
